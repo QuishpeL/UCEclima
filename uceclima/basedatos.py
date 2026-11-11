@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Base de datos del proyecto (SQLite) — parte del modelo. Un único archivo `base_datos/uceclima.sqlite` dentro del proyecto con lo que se descargó, se calculó y se corrigió, para consultarlo
 con SQL (también desde una IA por la API/MCP) sin reabrir decenas de CSV. Es una COPIA ordenada y trazable de los archivos del proyecto (los archivos siguen siendo la fuente): `sincronizar` la
 reconstruye de forma idempotente. La consulta es de SOLO LECTURA (una sola sentencia SELECT/WITH, con tope de filas y de tiempo).

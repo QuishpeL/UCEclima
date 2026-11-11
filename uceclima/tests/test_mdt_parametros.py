@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """MDT descargado con el botón suelto se registra (antes no) y CN/Manning propios desde la PC. Sin red.
 Ejecutar: python -m uceclima.tests.test_mdt_parametros"""
 import json, shutil, sys, tempfile, threading, traceback, urllib.request, urllib.error

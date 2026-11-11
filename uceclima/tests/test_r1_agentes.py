@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """R1 · agentes VS Code (Copilot) y Claude Code: archivos del proyecto y servidor MCP legible aunque stdio venga en cp1252 (como en el .exe).
 Ejecutar: python -m uceclima.tests.test_r1_agentes"""
 import json, os, shutil, subprocess, sys, tempfile, traceback

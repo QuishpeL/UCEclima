@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Pruebas de Lambda 9.1.0: módulo 7b de pronóstico (GFS, ECMWF, NASA IMERG, GEOGLOWS), botón de calado · velocidad · peligro, franja de desconexión y marca.
 Los servicios externos se simulan (sin internet). Ejecutar: python -m uceclima.tests.test_lambda"""
 import json, sys, tempfile, threading, time, traceback, urllib.request, urllib.error
@@ -47,19 +47,20 @@ SECO = np.zeros(72)
 
 
 def test_marca_y_menu_de_lambda():
-    assert uceclima.__version__ == "9.1.0-lambda"
-    html = get("/").decode("utf-8"); assert "<strong>UCEclima Lambda</strong>" in html and "Versión 9.1" in html and "descCerrar" in html and "peligro.js" in html and "pronostico.js" in html
+    assert uceclima.__version__ == "9.2.0-lambda"
+    html = get("/").decode("utf-8"); assert "<strong>UCEclima Lambda</strong>" in html and "Versión 9.2" in html and "descCerrar" in html and 'id="conexion"' in html and "peligro.js" in html and "pronostico.js" in html
     ids = [m["id"] for m in get("/api/estado")["modulos"]]; assert "pronostico" in ids and ids.index("pronostico") == ids.index("corrida") + 1
 
 
-def test_franja_de_desconexion_solo_cuando_se_corta():
+def test_conexion_es_un_icono_pequeno_y_solo_avisa_cuando_se_corta():
     js = (ESTATICOS / "app.js").read_text(encoding="utf-8")
     assert "FALLOS_PARA_AVISAR = 6" in js and "SEGUNDOS_SIN_RESPUESTA = 60" in js and "document.hidden" in js and "visibilitychange" in js and "/api/estado" in js and "AbortController" in js
-    assert "FALLOS_LATIDO >= 2" not in js                                           # el umbral de Eta (2 fallos = 20 s) ya no existe
+    assert "FALLOS_LATIDO >= 2) estadoConexion(\"lento\")" in js and "estadoConexion(\"cortado\")" in js
     html = (ESTATICOS / "index.html").read_text(encoding="utf-8")
+    assert 'id="conexion" data-estado="ok"' in html and html.index('id="conexion"') < html.index("</header>"), "el ícono vive en la barra superior"
     etiqueta = html[html.index('<div id="desconexion"'):].split(">", 1)[0]
-    assert " hidden" in etiqueta and "display:" not in etiqueta, "un display en línea anula el atributo hidden y la franja queda siempre a la vista"
-    assert "#desconexion:not([hidden]){display:flex}" in html and "#desconexion[hidden]{display:none}" in html
+    assert " hidden" in etiqueta and "style=" not in etiqueta and "left:0;right:0" not in html, "la tarjeta es pequeña y empieza oculta: ya no hay franja a lo ancho"
+    assert "#desconexion[hidden]{display:none}" in html and "width:min(340px" in html
 
 
 def test_pronostico_consulta_compara_y_guarda_con_procedencia():

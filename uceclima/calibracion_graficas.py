@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """R4 · gráficas y tablas de comparación de la calibración (para la combinación seleccionada y la aceptada; en pantalla y en la entrega).
 
 1. Mosaico de hidrogramas por evento: observado vs simulado, lluvia areal invertida arriba, color por rol; excluidos en gris.

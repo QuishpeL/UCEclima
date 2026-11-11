@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Epsilon · E1 MDT de alta resolución (relleno declarado de depresiones, hidrograma de entrada, sección y hidrograma 2D en la salida,
 velocidades anómalas, guía de MDT propio) y gráficas principales de CMIP6. Respuesta conocida, sin red.
 Ejecutar: python -m uceclima.tests.test_epsilon  (desde UCEclima)"""

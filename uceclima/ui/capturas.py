@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Capturas de pantalla reproducibles con Edge/Chrome sin cabeza: python -m uceclima.ui.capturas [puerto] [sufijo]. Requiere el servidor en marcha y un proyecto abierto."""
 import subprocess, sys
 from pathlib import Path

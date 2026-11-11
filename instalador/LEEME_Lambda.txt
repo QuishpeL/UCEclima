@@ -1,9 +1,18 @@
-UCEclima Lambda (9.1) · hidrología e hidráulica, de Ecuador al mundo con CHIRPS · versión de uso
+UCEclima Lambda (9.2) · hidrología e hidráulica, de Ecuador al mundo con CHIRPS · versión de uso
 Autor: Diego Quishpe Landeta · Coautoras: Teresa Palacios y María Eugenia Ávila-Salem
 Doctorado en Gestión Sustentable del Agua y Riego · Universidad Central del Ecuador
 =====================================================
 
-LAMBDA 9.1 ES LA VERSIÓN DE USO (se instala aparte; Eta 9.0, Zeta 8.0 y Omega 7.0 no se tocan)
+LAMBDA 9.2 (11-nov-2026) · NOVEDADES (reemplaza a Lambda 9.1 al instalar; Eta, Zeta y Omega no se tocan)
+  N1  CUENCAS EXTERNAS AUTOMÁTICAS (módulo 7 · Corrida, sección Forzamiento): 1 · Descargar MDT amplio → 2 · Detectar → 3 · Usar.
+      Mismo método que Quito: D8, cuencas sin solape, CN de WorldCover × suelo, lag NEH-630, entrada en el cauce. Las grandes van a GEOGLOWS.
+  N2  RÍO GRANDE SIN DATOS DE CAUDAL → hidrograma de GEOGLOWS v2: pico de cada Tr con Gumbel de 87 años de caudal horario y forma media
+      de las crecidas; el pico coincide con el de la tormenta local. Modelo global: referencia, no observación.
+  N3  MÓDULO 13 · LLUVIA A CAUDAL: visor de partículas de cualquier corrida terminada (enlace junto a «Ver métricas»).
+  N4  La conexión es un ÍCONO pequeño arriba a la derecha (verde · ámbar · rojo), ya no una franja roja.
+  N5  Licencia CC BY-NC 4.0 en todos los archivos; arreglado el panel Hidrología con cuencas externas (valores vacíos).
+
+LAMBDA 9.1 ERA LA VERSIÓN DE USO (se instala aparte; Eta 9.0, Zeta 8.0 y Omega 7.0 no se tocan)
 Es Eta 9.0 con cuatro cambios. Todo lo demás —incluido CMIP6— funciona igual que en Eta.
 
   L1  MÓDULO 7b · PRONÓSTICO DE LLUVIA (GFS · ECMWF · NASA)
@@ -26,7 +35,7 @@ Es Eta 9.0 con cuatro cambios. Todo lo demás —incluido CMIP6— funciona igua
 
 MÓDULOS
   0 Preparación de datos · 1 Proyecto · 2 Datos / GEE · 3 CHIRPS · 4 IDF (X) · 5 Terreno · 6 hidro · 7 land · Corrida 2D
-  7b Pronóstico · 8 Evaluación · 8b Mapa 2D X frente a Y · 8c Visor 3D · 9 CMIP6 · 10 WRF · 11 Resultados y entregas · 12 Validación de campo.
+  7b Pronóstico · 8 Evaluación · 8b Mapa 2D X frente a Y · 8c Visor 3D · 9 CMIP6 · 10 WRF · 11 Resultados y entregas · 12 Validación de campo · 13 Lluvia a caudal.
 
 PROYECTOS
   Documentos\UCEclima_proyectos\<nombre>. Desinstalar no los borra. Los proyectos de Eta, Zeta y Omega se abren en Lambda.

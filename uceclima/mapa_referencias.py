@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Epsilon · mapa de la corrida 2D con referencias (método de los mapas de Machala/Gualaquiza/Portoviejo, CLIMALAB):
 imagen satelital (Esri World Imagery), calado suavizado SOLO para visualización, calles, huellas de edificios (expuestos en rojo:
 ≥ 0,5 m y ≥ 1 m), salud, educación, seguridad, gobierno y lugares de OpenStreetMap, salida de la cuenca, norte, escala y leyenda.

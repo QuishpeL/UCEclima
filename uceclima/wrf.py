@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """WRF en UCEclima: (1) leer salidas existentes y (2) preparar una corrida para otra máquina (Linux/WSL).
 
 (1) leer: archivos wrfout_* (RAINC + RAINNC [+ RAINSH], acumuladas desde el inicio de la corrida; cubos I_RAINC/I_RAINNC si existen)

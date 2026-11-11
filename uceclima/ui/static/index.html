@@ -12,7 +12,7 @@
 <a class="saltar" href="#principal">Saltar al contenido</a>
 <div class="app">
   <aside class="lateral" id="lateral" aria-label="Etapas">
-    <div class="marca"><span class="logo" aria-hidden="true"><img src="/static/logo_emblema.png" alt=""></span><div><strong>UCEclima Lambda</strong><small>Versión 9.1</small></div></div>
+    <div class="marca"><span class="logo" aria-hidden="true"><img src="/static/logo_emblema.png" alt=""></span><div><strong>UCEclima Lambda</strong><small>Versión 9.2</small></div></div>
     <nav id="nav" aria-label="Módulos"></nav>
     <div class="pie-logos"><img src="/static/logo_uce.png" alt="Universidad Central del Ecuador"></div>
     <p class="pie-lateral">Autor: Diego Quishpe Landeta · Coautoras: Teresa Palacios y María Eugenia Ávila-Salem.</p>
@@ -29,6 +29,7 @@
       <span class="chip" id="guardado-info" aria-live="polite"></span>
       <button type="button" class="tema-btn" id="btnagente" title="Agente de VS Code">○ Agente VS Code</button>
       <button type="button" class="tema-btn" id="btntema" title="Cambiar entre tema noche y claro">◐ Tema</button>
+      <button type="button" id="conexion" data-estado="ok" title="Conectado con UCEclima" aria-label="Estado de la conexión: conectado"><i></i></button>
       <span class="estado-corrida" id="estado-corrida" aria-live="polite"></span>
     </header>
     <main id="principal" tabindex="-1"></main>
@@ -40,14 +41,25 @@
     <h2 style="font-weight:300;margin:12px 0 6px">Abriendo UCEclima Lambda…</h2><p id="arrTxt" style="color:#93a4b8;margin:0 0 14px">Recuperando tu proyecto y lo que llevas hecho.</p>
     <div style="height:6px;background:#1c2a3c;border-radius:4px;overflow:hidden"><i id="arrBar" style="display:block;height:100%;width:8%;background:#6cc4ec;transition:width .6s"></i></div>
     <button id="arrRe" hidden style="margin-top:16px">Reintentar</button></div></div>
-<style>#desconexion:not([hidden]){display:flex}#desconexion[hidden]{display:none}</style>
-<div id="desconexion" role="alert" hidden style="position:fixed;left:0;right:0;top:0;z-index:95;background:#8b1a1a;color:#fff;padding:12px 18px;font-size:15px;gap:14px;align-items:center;box-shadow:0 4px 18px rgba(0,0,0,.5)">
-  <b>UCEclima se desconectó.</b><span id="descTxt" style="flex:1">Tus datos y la corrida están guardados en la carpeta del proyecto. Si cerraste el programa, ábrelo otra vez desde el acceso directo: continúas donde te quedaste.</span>
-  <button id="descRe" style="background:#fff;color:#8b1a1a;border:0;border-radius:6px;padding:6px 12px;cursor:pointer">Reconectar</button>
-  <button id="descCerrar" aria-label="Cerrar este aviso" title="Cerrar este aviso (vuelve a salir solo si la conexión se corta otra vez)" style="background:transparent;color:#fff;border:1px solid rgba(255,255,255,.5);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:16px;line-height:1">×</button></div>
+<style>
+#conexion{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;padding:0;border-radius:50%;border:1px solid var(--borde,#2b3b52);background:transparent;cursor:pointer;margin-left:2px}
+#conexion i{display:block;width:9px;height:9px;border-radius:50%;background:#3fb27f;transition:background .3s}
+#conexion[data-estado="lento"] i{background:#e0a33a}
+#conexion[data-estado="cortado"] i{background:#e0483a;animation:latidoRojo 1.6s ease-in-out infinite}
+@keyframes latidoRojo{0%,100%{box-shadow:0 0 0 0 rgba(224,72,58,.55)}50%{box-shadow:0 0 0 5px rgba(224,72,58,0)}}
+@media (prefers-reduced-motion:reduce){#conexion[data-estado="cortado"] i{animation:none}}
+#desconexion{position:fixed;top:52px;right:16px;z-index:95;width:min(340px,calc(100vw - 32px));background:#16202e;color:#e8eef6;border:1px solid #e0483a;border-radius:10px;padding:12px 14px;font-size:13px;line-height:1.45;box-shadow:0 8px 24px rgba(0,0,0,.45)}
+#desconexion[hidden]{display:none}
+#desconexion .acciones{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
+#desconexion button{border-radius:6px;padding:4px 10px;cursor:pointer;font-size:13px}
+</style>
+<div id="desconexion" role="status" hidden>
+  <b id="descTit">Sin conexión con UCEclima</b><br><span id="descTxt">Tus datos y la corrida están guardados en la carpeta del proyecto. Si cerraste el programa, ábrelo otra vez desde el acceso directo: continúas donde te quedaste.</span>
+  <div class="acciones"><button id="descCerrar" type="button" style="background:transparent;color:#e8eef6;border:1px solid #4a5a70">Cerrar</button><button id="descRe" type="button" style="background:#e8eef6;color:#16202e;border:0">Reconectar</button></div></div>
 <script>window.TOKEN="__TOKEN__";</script>
 <script src="/static/app.js"></script>
 <script src="/static/series.js"></script>
+<script src="/static/externas.js"></script>
 <script src="/static/premodulo.js"></script>
 <script src="/static/modulos.js"></script>
 <script src="/static/idf.js"></script>

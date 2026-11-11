@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Series y gráficas del premódulo: catálogo de series del proyecto (CHIRPS, estaciones importadas, CELEC, GEOGLOWS), agregados anuales/mensuales, tendencia (Mann-Kendall + pendiente de Sen)
 e hidrogramas de eventos. Solo lee lo que hay en el proyecto; no rellena, no corrige y marca los años incompletos. La tendencia es descriptiva: con pocos años o series cortas es frágil."""
 import json, math

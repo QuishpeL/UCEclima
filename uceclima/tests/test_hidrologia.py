@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Panel «Hidrología y calibración»: métricas solo en períodos coincidentes, rótulo «simulación sin calibrar», conservación de volumen, unidades/fechas y exportación sin sobrescribir.
 Datos sintéticos de respuesta conocida + la cuenca Milagro real del núcleo (solo lectura). Ejecutar: python -m uceclima.tests.test_hidrologia"""
 import json, sys, tempfile, traceback

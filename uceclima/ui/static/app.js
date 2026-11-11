@@ -248,7 +248,8 @@ async function pintarForzamiento() {
      <h3>Cuencas externas (solo tormentas de diseño Tr)</h3>
      <p class="chip">El núcleo calcula el hidrograma de cada cuenca con la MISMA IDF y Tr de la 2D (SCS-CN + HU SCS), usando solo su área fuera del dominio. Una fila por cuenca: <b>nombre; carpeta de la cuenca; CN; lag (h); x; y</b>. Cuencas del proyecto: ${(f.cuencas || []).map(esc).join(", ") || "—"}.</p>
      <textarea id="fzCue" rows="3" style="width:100%">${esc((f.cuencas_externas || []).map(c => `${c.nombre}; ${(c.shp.split(/[\\/]/).slice(-2, -1)[0] || c.shp)}; ${c.cn}; ${c.lag_h}; ${c.entrada_xy[0]}; ${c.entrada_xy[1]}`).join("\n"))}</textarea>
-     <div class="fila"><button id="fzCueOk">Declarar cuencas externas</button></div><div id="fzCueRes"></div>`;
+     <div class="fila"><button id="fzCueOk">Declarar cuencas externas</button></div><div id="fzCueRes"></div><div id="fzAuto"></div>`;
+  if (window.UCE_externas) window.UCE_externas($("#fzAuto"));                               // Lambda 9.2: cuencas externas automáticas y entradas GEOGLOWS
   $("#fzUsar").onclick = async () => {
     const j = await api("/api/proyecto/evento", {estacion: $("#fzEst").value, inicio: $("#fzIni").value, fin: $("#fzFin").value, zona: "local"});
     $("#fzEvRes").innerHTML = j.error ? nota(esc(j.error), "err") : nota(`Evento declarado: ${fmt(j.P_total_mm, 1)} mm · hora local ${esc(j.inicio_local || "")} → ${esc(j.fin_local || "")} (${esc(j.zona_local || "")}) · UTC ${esc(j.inicio_utc)} → ${esc(j.fin_utc)} · ${fmt(j.sim_horas, 1)} h simuladas.<br>${(j.advertencias || []).map(esc).join("<br>")}`, "ok");
@@ -286,7 +287,7 @@ async function refrescarCorrida() {
   if (!id) return; const e = await api("/api/corrida/estado?id=" + encodeURIComponent(id));
   const reanudar = e.estado === "interrumpido" && e.reanudable ? `<div class="fila"><button class="principal" id="btnReanudar" data-id="${esc(id)}">▶ Reanudar desde el ${Math.round(((e.punto_control || {}).progreso || 0) * 100)} %</button><span class="chip">No se repite lo ya calculado. El resultado es el mismo que sin el corte.</span></div>` : (e.estado === "interrumpido" ? nota("Esta corrida se cortó antes de su primer punto de control (se guarda cada 10 minutos): hay que lanzarla de nuevo.", "pend") : "");
   $("#estRun").innerHTML = reanudar + `<p>${badge(e.estado)} <b>${esc(id)}</b></p><div class="barra-prog" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round((e.progreso || 0) * 100)}"><i style="width:${Math.round((e.progreso || 0) * 100)}%"></i></div><p class="chip">${esc(e.mensaje || "")}${e.pasos ? " · " + fmt(e.pasos, 0) + " pasos" : ""}</p>` +
-    (e.estado === "completado" ? `<p><a href="#/evaluacion" data-eval="${esc(id)}">Ver métricas y mapa →</a> · <a href="#/campo" data-campo="${esc(id)}">Validar con la comunidad (módulo 12) →</a></p>` : "");
+    (e.estado === "completado" ? `<p><a href="#/evaluacion" data-eval="${esc(id)}">Ver métricas y mapa →</a> · <a href="#/campo" data-campo="${esc(id)}">Validar con la comunidad (módulo 12) →</a> · <a href="/static/particulas.html?id=${encodeURIComponent(id)}" target="_blank" rel="noopener" title="Animación de la lluvia que se convierte en caudal (visualización, no velocidades del modelo)">Lluvia a caudal (módulo 13) ↗</a></p>` : "");
   const eva = $("[data-eval]"); if (eva) eva.onclick = () => { S.corridaSel = eva.dataset.eval; };
   const cam = $("[data-campo]"); if (cam) cam.onclick = () => { S.campoSel = cam.dataset.campo; };
   const lg = $("#logRun"); lg.textContent = e.log || "(sin registro)"; lg.scrollTop = lg.scrollHeight;
@@ -401,30 +402,40 @@ const VISTAS = {terreno: vTerreno, visor: vVisor, cuencas: vCuencas, corrida: vC
 })();
 
 // latido: permite que la versión empaquetada se cierre sola cuando se cierra la ventana.
-// Lambda: la franja roja «UCEclima se desconectó» solo aparece cuando la conexión de verdad se cortó. En Eta saltaba con 2 latidos fallidos (20 s),
-// y bastaba que el servidor estuviera ocupado con una descarga o que el navegador congelara la pestaña. Ahora: (1) cada latido tiene un tiempo máximo
-// de 8 s; (2) no cuentan los fallos mientras la pestaña está oculta (el navegador congela los temporizadores); (3) hacen falta 6 fallos seguidos y
-// más de 60 s sin ninguna respuesta; (4) antes de avisar se confirma con una segunda sonda distinta (/api/estado).
-let FALLOS_LATIDO = 0, ULTIMA_RESPUESTA = Date.now(), DESC_CERRADA = false;
+// Lambda 9.2: el estado de la conexión es un ÍCONO pequeño en la barra superior (verde = conectado, ámbar = tarda en responder, rojo = cortado);
+// ya no hay franja roja a lo ancho de la pantalla. Al pulsar el ícono se abre una tarjeta pequeña con el mensaje y «Reconectar».
+// La detección es la misma de 9.1: (1) cada latido tiene un tiempo máximo de 8 s; (2) no cuentan los fallos con la pestaña oculta; (3) para «cortado»
+// hacen falta 6 fallos seguidos y más de 60 s sin ninguna respuesta; (4) antes se confirma con una segunda sonda distinta (/api/estado).
+let FALLOS_LATIDO = 0, ULTIMA_RESPUESTA = Date.now();
 const FALLOS_PARA_AVISAR = 6, SEGUNDOS_SIN_RESPUESTA = 60;
 async function sonda(url) {
   const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 8000);
   try { const r = await fetch(url, {cache: "no-store", signal: ctl.signal}); return r.ok; } catch (e) { return false; } finally { clearTimeout(t); }
 }
+function estadoConexion(estado) {
+  const b = $("#conexion"); if (!b || b.dataset.estado === estado) return;
+  const antes = b.dataset.estado; b.dataset.estado = estado;
+  const txt = {ok: "Conectado con UCEclima", lento: "UCEclima tarda en responder (puede estar ocupado con una corrida o una descarga)", cortado: "Sin conexión con UCEclima: pulsa para ver qué hacer"}[estado];
+  b.title = txt; b.setAttribute("aria-label", "Estado de la conexión: " + {ok: "conectado", lento: "lento", cortado: "sin conexión"}[estado]);
+  if (estado === "ok") { const d = $("#desconexion"); if (d) d.hidden = true; if (antes === "cortado") { aviso("Conexión recuperada: todo sigue guardado.", 5000); cargarEstado(); } }
+}
 async function latido() {
   if (document.hidden) return;                                  // pestaña dormida: no es una desconexión
-  if (await sonda("/api/latido")) {
-    FALLOS_LATIDO = 0; ULTIMA_RESPUESTA = Date.now(); DESC_CERRADA = false; const d = $("#desconexion");
-    if (d && !d.hidden) { d.hidden = true; aviso("Conexión recuperada: todo sigue guardado.", 5000); cargarEstado(); }
-    return;
-  }
+  if (await sonda("/api/latido")) { FALLOS_LATIDO = 0; ULTIMA_RESPUESTA = Date.now(); estadoConexion("ok"); return; }
   FALLOS_LATIDO++;
-  if (FALLOS_LATIDO >= FALLOS_PARA_AVISAR && (Date.now() - ULTIMA_RESPUESTA) / 1000 > SEGUNDOS_SIN_RESPUESTA && !(await sonda("/api/estado")) && !DESC_CERRADA) { const d = $("#desconexion"); if (d) d.hidden = false; }
+  if (FALLOS_LATIDO >= FALLOS_PARA_AVISAR && (Date.now() - ULTIMA_RESPUESTA) / 1000 > SEGUNDOS_SIN_RESPUESTA && !(await sonda("/api/estado"))) estadoConexion("cortado");
+  else if (FALLOS_LATIDO >= 2) estadoConexion("lento");
 }
 document.addEventListener("visibilitychange", () => { if (!document.hidden) { FALLOS_LATIDO = 0; ULTIMA_RESPUESTA = Date.now(); latido(); } });   // al volver a la pestaña se empieza de cero
 setInterval(latido, 10000); latido();
-document.addEventListener("click", e => { if (e.target.closest("#descCerrar")) { DESC_CERRADA = true; const d = $("#desconexion"); if (d) d.hidden = true; } });   // el aviso se puede cerrar: no vuelve hasta que la conexión se recupere y se corte otra vez
-document.addEventListener("click", e => { if (e.target.closest("#descRe")) { $("#descTxt").textContent = "Reconectando…"; latido().then(() => { if (FALLOS_LATIDO === 0) location.reload(); else $("#descTxt").textContent = "Sigue sin responder. Abre UCEclima otra vez desde el acceso directo: tus datos y la corrida están guardados y continúas donde te quedaste."; }); } });
+document.addEventListener("click", e => {
+  if (e.target.closest("#conexion")) { const d = $("#desconexion"), b = $("#conexion"); if (!d || !b) return;
+    if (b.dataset.estado === "ok") { aviso("Conectado con UCEclima.", 2500); return; }
+    $("#descTit").textContent = b.dataset.estado === "cortado" ? "Sin conexión con UCEclima" : "UCEclima tarda en responder";
+    d.hidden = !d.hidden; return; }
+  if (e.target.closest("#descCerrar")) { const d = $("#desconexion"); if (d) d.hidden = true; return; }
+  if (e.target.closest("#descRe")) { $("#descTxt").textContent = "Reconectando…"; latido().then(() => { if (FALLOS_LATIDO === 0) location.reload(); else $("#descTxt").textContent = "Sigue sin responder. Abre UCEclima otra vez desde el acceso directo: tus datos y la corrida están guardados y continúas donde te quedaste."; }); }
+});
 
 // tema noche / claro (preferencia solo en este navegador)
 $("#btntema").addEventListener("click", () => {

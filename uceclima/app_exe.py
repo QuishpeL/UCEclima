@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Punto de entrada del programa empaquetado (UCEclima.exe). Sin argumentos abre la interfaz; los otros modos son procesos auxiliares que la interfaz relanza
 con el mismo ejecutable (no hay Python instalado en el equipo de destino): --worker <carpeta_corrida> y --dialogo carpeta|archivo."""
 import os, sys

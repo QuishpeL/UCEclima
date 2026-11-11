@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """PREMÓDULO · Preparación de datos de ingreso.
 
 Recibe datos crudos (lluvia en formato ancho de anuario INAMHI o largo, inventario de eventos de la SGR/SNGR, rásteres, etc.), los clasifica, los ordena a un formato

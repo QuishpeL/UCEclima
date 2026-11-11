@@ -1,9 +1,9 @@
-; Instalador de UCEclima Lambda (Inno Setup 6). Un solo archivo: UCEclima_Lambda_Setup.exe
+﻿; Instalador de UCEclima Lambda (Inno Setup 6). Un solo archivo: UCEclima_Lambda_Setup.exe
 ; - Se instala APARTE de Eta, Zeta y Omega (AppId propio): las versiones conviven.
 ; - Instala SIN permisos de administrador en %LOCALAPPDATA%\Programs\UCEclima Lambda (se puede elegir otra carpeta).
 ; - Desinstalar borra el programa; los proyectos (Documentos\UCEclima_proyectos) NO se borran.
 #define AppName "UCEclima Lambda"
-#define AppVer "9.1.0-lambda"
+#define AppVer "9.2.0-lambda"
 
 [Setup]
 AppId={{D2C41921-EFCC-4C48-86E3-AC2C02E2D8C0}
@@ -18,7 +18,7 @@ DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
 OutputDir=..\build_instalador
-OutputBaseFilename=UCEclima_Lambda_Setup
+OutputBaseFilename=UCEclima_Lambda_9.2_Setup
 SetupIconFile=..\uceclima\ui\static\UCEclima.ico
 UninstallDisplayIcon={app}\UCEclima.exe
 UninstallDisplayName={#AppName} {#AppVer}
@@ -30,7 +30,7 @@ SolidCompression=yes
 CloseApplications=yes
 RestartApplications=no
 ArchitecturesInstallIn64BitMode=x64compatible
-VersionInfoVersion=9.1.0.0
+VersionInfoVersion=9.2.0.0
 VersionInfoCompany=Doctorado en Gestión Sustentable del Agua y Riego · Universidad Central del Ecuador
 VersionInfoDescription=UCEclima Lambda · hidrología e hidráulica
 

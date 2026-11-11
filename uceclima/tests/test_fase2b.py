@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Fase 2 · R2 (editar sitio), R3 (sufijo ucec, renombrar, listar), C17 (historial terreno), C19 (CN para la 2D), C23 (punto IDF), C24/C25 (entrega). Sin red.
 Ejecutar: python -m uceclima.tests.test_fase2b"""
 import json, shutil, sys, tempfile, threading, traceback, urllib.request, urllib.error

@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """⚙ Configuración por módulo: parámetros matemáticos y de paso que la persona puede cambiar en config_climanet.json.
 Cada cambio se valida (tipo y rango) y deja una copia .bak de la configuración anterior."""
 import json

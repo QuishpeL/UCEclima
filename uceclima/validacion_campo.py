@@ -1,4 +1,4 @@
-﻿# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+﻿# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Validación de campo (Zeta, 31-oct-2026; reemplaza a la maqueta hipsométrica). Tres pasos, sin correr el modelo:
 1) generar_encuesta: HTML autocontenido «¿Se inunda?» de la zona de estudio con los mapas de calado máximo de las corridas (X y Y),
    para encuestar a la comunidad sobre la cota de inundación (como el Taller 3 de Milagro, 23-sep-2026) y registrar las respuestas en línea

@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """IDF INAMHI como X (condiciones existentes): ingesta de las ECUACIONES y CUADROS del libro «Determinación de ecuaciones para el cálculo de intensidades máximas de precipitación» (INAMHI),
 ya incluidos en el núcleo (72 zonas pluviográficas, 218 estaciones con Idtr). Para el sitio del proyecto se muestran: la estación de referencia y su zona, las ecuaciones i = K · Idtr · t^-n (por tramos de duración),
 el cuadro IDF (9 duraciones × 6 Tr) en los tres modos del libro (estación / escalada / sitio), las curvas y la tormenta de diseño (bloques alternos). Todo es la condición HISTÓRICA (X): sin cambio climático.

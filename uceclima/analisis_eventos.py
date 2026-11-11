@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Selección de eventos (lluvia diaria + caudal) para un proyecto con datos DESCARGADOS (CHIRPS, CELEC/GEOGLOWS, estación). Reutiliza los criterios estadísticos de
 `seleccion_eventos` pero DERIVA los umbrales de los propios datos (no de una cuenca distinta) y los deja escritos:
   - inicio del año hidrológico = mes con menor lluvia media (climatología de la serie);

@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Zeta Z5 · Lo mejor de los papers 1–3 (Quishpe Landeta y Palacios, 2026) llevado al programa.
 
   P1 · Tiempo de emergencia (ToE) de la lluvia en Ecuador: las celdas de los modelos subestiman ~½ la variabilidad interanual de las estaciones,

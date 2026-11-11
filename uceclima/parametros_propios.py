@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """CN y Manning PROPIOS de la persona (GeoTIFF desde su PC). Tienen prioridad sobre los estimados con Earth Engine.
 Se copian al proyecto (los originales no se tocan), se revisan (CRS, rango físico, cobertura sobre el área del modelo) y se registran con su fuente.
 La configuración anterior queda en un .bak con sello de tiempo."""

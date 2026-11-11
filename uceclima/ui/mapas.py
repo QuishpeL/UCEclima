@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Mapas estáticos REALES a partir de los rásteres que escribe el núcleo (sin satélite, sin agua inventada).
 Cada mapa lleva: unidades, CRS, aviso de datum vertical, tipo de resultado (diseño IDF, no calibrado) y, en proyectos sintéticos, una marca visible."""
 from pathlib import Path

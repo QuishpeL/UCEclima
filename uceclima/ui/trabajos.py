@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Gestor de corridas: una tarea por vez, proceso hijo, cancelación segura, registro persistente y detección de corridas interrumpidas.
 Estados: pendiente · en_curso · completado · fallido · cancelado · interrumpido. «completado» solo significa que el proceso terminó."""
 import json, os, subprocess, sys, time

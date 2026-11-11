@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Panel «Hidrología y calibración»: hietograma, hidrogramas observado/simulado, volúmenes acumulados, balance y tránsito, con las series REALES de las corridas del proyecto (punto de partida: Mazar).
 
 Reglas (no se saltan):

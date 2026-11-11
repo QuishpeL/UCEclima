@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Solver 2D de inercia local con representación SUBCELDA del terreno (volumen-elevación y secciones de cara).
 
 Idea (equivalente conceptual a las tablas hidráulicas de HEC-RAS 2D): cada celda gruesa agrupa m×m píxeles finos del MDT.

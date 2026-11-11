@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Lámina del MDT del proyecto: relieve sombreado con tintes hipsométricos, curvas de nivel, área de estudio, sitio, escala y norte;
 curva hipsométrica, histograma de cotas y estadísticas. Solo representa el ráster registrado; no lo modifica."""
 import io

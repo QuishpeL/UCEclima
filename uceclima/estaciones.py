@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Estaciones pluviométricas/pluviográficas del proyecto: importar CSV con vista previa y control de calidad, catálogo, series y hietograma de evento.
 Todo se guarda dentro del proyecto (datos/estaciones/). No se interpola, no se corrige y no se rellenan huecos: lo ausente queda ausente.
 Formato normalizado: <id>.csv con columnas fecha (ISO-8601 en UTC) y lluvia_mm (mm por registro) y catalogo.csv (id,nombre,x,y,tipo,...) compatible con CLIMANET StationRain.

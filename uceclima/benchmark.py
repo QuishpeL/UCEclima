@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """D5 · Benchmark de la calibración (Delta). Compara, en LAS MISMAS ventanas de eventos, con la misma lluvia y la misma métrica
 (calibracion._evaluar agrupa las ventanas de ajuste y de validación):
   (a) referencia sin habilidad: caudal base del inicio del evento, constante (Knoben et al. 2019 discuten benchmarks así);

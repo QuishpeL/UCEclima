@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Importar un MDT/DSM de dron (GeoTIFF) a un proyecto: inspección de calidad y registro. El ráster NO se copia ni se modifica (puede pesar gigabytes);
 el proyecto lo referencia por ruta absoluta y hash. El tipo (MDT/DSM) y el datum los declara la persona: aquí no se adivinan."""
 import json, math

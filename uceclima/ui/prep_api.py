@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """API del PREMÓDULO de preparación de datos. Todo es determinista y reproducible: una IA (vía la API abierta) o una persona eligen hoja, columnas, estación y filtros;
 el programa ordena, mide la calidad y escribe en carpetas NUEVAS (nunca toca los archivos crudos). No hay modelo de lenguaje dentro del programa."""
 import json, os

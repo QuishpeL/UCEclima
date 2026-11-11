@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Usar un evento OBSERVADO de una estación del proyecto como forzamiento de la corrida (en lugar de la tormenta de diseño IDF).
 Exporta el hietograma de la ventana, lo valida con el núcleo (sin ausentes, sin huecos, sin negativos; diaria solo con desagregación declarada) y lo declara en la
 configuración (con copia .bak). Sigue siendo un modelo NO calibrado: el resultado no es una validación."""

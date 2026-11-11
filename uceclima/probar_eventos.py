@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 from eventos import Evento,validar_hietograma,elegir_producto
 from datetime import datetime,timedelta
 e=Evento('prueba','2011-02-02T00:00:00-05:00','2011-02-02T04:00:00-05:00','M0037')

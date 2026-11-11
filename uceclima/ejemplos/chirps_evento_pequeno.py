@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Ejemplo pequeño y reproducible: evento fechado de 2 días, 28 subcuencas de Milagro, ventanas ±5 y ±21 días con CHIRPS (v3 DAILY_SAT preferido).
 Uso (desde MILAGRO): python -m uceclima.ejemplos.chirps_evento_pequeno [AAAA-MM-DD inicio] [AAAA-MM-DD fin]
 Requiere haber autorizado Earth Engine una vez (`earthengine authenticate`). Si no hay acceso: escribe la solicitud reproducible y se detiene."""

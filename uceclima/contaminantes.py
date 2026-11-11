@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Epsilon · maqueta isométrica de dispersión de contaminantes (BASE pedagógica, se desarrollará en el doctorado).
 Derrame instantáneo de una masa M en un tramo de río rectangular (ancho B, calado h, pendiente S, Manning n):
   U = (1/n) R^(2/3) S^(1/2) con R = B·h/(B + 2h)           velocidad media (Manning)

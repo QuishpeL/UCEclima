@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Evento de lluvia OBSERVADO como forzamiento (alternativa a la tormenta de diseño IDF).
 
 Entrada: un CSV de hietograma con columnas `fecha` (ISO; sin zona = UTC) y `lluvia_mm` (mm por registro, el registro cubre hasta la marca siguiente),

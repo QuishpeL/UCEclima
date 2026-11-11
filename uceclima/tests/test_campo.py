@@ -1,4 +1,4 @@
-﻿# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+﻿# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Pruebas del módulo 12 · Validación de campo (Zeta, 31-oct-2026) con un proyecto sintético de resultado conocido. No corre el modelo."""
 import csv, json, re, shutil, subprocess, tempfile
 from pathlib import Path

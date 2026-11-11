@@ -1,0 +1,233 @@
+<!doctype html>
+<!-- UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE) · módulo 13, prototipo del 7-nov-2026 -->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lluvia a caudal · M13</title>
+<style>
+:root{--t:#e9edf2;--d:#6b7380;--l:rgba(255,255,255,.14)}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#050608;color:var(--t);font:12px/1.4 "Segoe UI",system-ui,sans-serif;overflow:hidden}
+canvas{position:fixed;inset:0;width:100%;height:100%}
+#cab{position:fixed;left:28px;top:22px;letter-spacing:.2em;font-size:11px;text-transform:uppercase;color:var(--d)}
+#cab b{display:block;color:var(--t);font-weight:500;letter-spacing:.14em;margin-bottom:4px}
+#lec{position:fixed;right:28px;top:22px;text-align:right;letter-spacing:.12em;font-size:11px;color:var(--d)}
+#lec span{display:block;color:var(--t);font-size:20px;letter-spacing:.04em;font-weight:300}
+#fase{position:fixed;left:50%;top:22px;transform:translateX(-50%);letter-spacing:.3em;font-size:11px;text-transform:uppercase;color:var(--d);display:flex;gap:26px}
+#fase i{font-style:normal;transition:color .5s}#fase i.on{color:var(--t);border-bottom:1px solid var(--t)}
+#bar{position:fixed;left:0;right:0;bottom:0;padding:0 28px 22px;display:flex;gap:22px;align-items:flex-end;justify-content:space-between}
+.g{display:flex;gap:18px;align-items:flex-end}
+.s{display:flex;flex-direction:column;gap:7px;min-width:78px;flex:1}
+.s label,.m span{letter-spacing:.22em;font-size:10px;text-transform:uppercase;color:var(--d)}
+input[type=range]{-webkit-appearance:none;appearance:none;height:1px;background:var(--l);width:100%;outline:0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:11px;height:11px;border-radius:50%;background:#fff;cursor:pointer}
+.m{display:flex;gap:18px}
+.m span{cursor:pointer;padding-bottom:3px;border-bottom:1px solid transparent}.m span.on{color:var(--t);border-color:var(--t)}
+#ply{width:50px;height:50px;flex:none;border:0;border-radius:50%;background:linear-gradient(145deg,#4aa3f0,#1f6fc4);color:#fff;cursor:pointer;font-size:18px;box-shadow:0 0 22px rgba(60,150,235,.55),inset 0 0 0 1px rgba(255,255,255,.25);transition:transform .15s,box-shadow .15s}
+#ply:hover{transform:scale(1.07);box-shadow:0 0 30px rgba(90,175,255,.8),inset 0 0 0 1px rgba(255,255,255,.4)}
+#ley{position:fixed;left:28px;top:96px;font-size:11px;letter-spacing:.06em;color:var(--t)}
+#ley b{display:block;font-weight:500;letter-spacing:.2em;font-size:10px;text-transform:uppercase;color:var(--d);margin-bottom:8px}
+#ley div{display:flex;align-items:center;gap:9px;margin-bottom:5px}
+#ley i{width:22px;height:11px;border-radius:2px;display:inline-block}
+#ley .seco{color:var(--d)}#ley .seco i{background:transparent;border:1px solid #3a4250}
+#cur{position:relative;flex:1;min-width:160px}
+#cur canvas{position:static;width:100%;height:46px;display:block}
+#nota{position:fixed;left:28px;bottom:78px;max-width:420px;color:#4d5460;font-size:10.5px;letter-spacing:.03em}
+#carga{position:fixed;inset:0;display:grid;place-items:center;letter-spacing:.3em;color:var(--d);background:#050608}
+#carga.fuera{display:none}
+#volver{color:var(--d);text-decoration:none;letter-spacing:.2em;font-size:10px;display:inline-block;margin-top:6px}#volver:hover{color:var(--t)}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="cab"><b id="tit">Lluvia a caudal</b><span id="sub"></span><br><a id="volver" href="/#/corrida">← UCEclima</a></div>
+<div id="fase"><i id="f1">Caída</i><i id="f2">Acumulación</i><i id="f3">Caudal</i></div>
+<div id="lec"><span id="tt">0 h 00</span>tiempo simulado<span id="vv" style="margin-top:8px">0</span>mil m³ de agua en el dominio<span id="med" style="margin-top:8px;font-size:12px;letter-spacing:.06em"></span></div>
+<div id="ley"></div>
+<div id="nota">Visualización: la lluvia cae con la intensidad con que sube el volumen de agua del modelo (la corrida no guarda el hietograma); el agua se mueve según la pendiente de la superficie (cota + calado). No es una medición ni una salida hidráulica de velocidades. Marcas: calado del agua en ese punto (m), con el color de su clase. Arrastra para girar; rueda para acercar. «Medición» carga un CSV de cámara (tiempo_s desde el inicio de la lluvia, alineado al inicio de este video). Sin calibrar ni validar.</div>
+<div id="bar">
+  <div class="g">
+    <button id="ply" aria-label="Reproducir">▶</button>
+    <div class="s"><label>Lluvia</label><input id="sLl" type="range" min="0" max="1" step=".01" value=".6"></div>
+    <div class="s"><label>Estela</label><input id="sEs" type="range" min="0" max="1" step=".01" value=".7"></div>
+    <div class="s"><label>Relieve</label><input id="sRe" type="range" min="0" max="1" step=".01" value=".45"></div>
+    <div class="s"><label>Deriva</label><input id="sDe" type="range" min="0" max="1" step=".01" value=".35"></div>
+    <div class="s"><label>Inclinación</label><input id="sIn" type="range" min="0" max="1" step=".01" value=".55"></div>
+  </div>
+  <div id="cur"><canvas id="cv" width="600" height="46"></canvas><input id="sT" type="range" min="0" max="1" step=".0005" value="0"></div>
+  <div class="g">
+    <div class="m" id="mR"><span data-m="disperso">Disperso</span><span data-m="denso" class="on">Denso</span></div>
+    <div class="m" id="mM"><span data-k="marks" class="on">Marcas</span><span data-k="rel">Terreno</span><span data-k="ritmo" class="on">Cámara lenta</span><span id="bMed" title="Cargar medición de cámara: CSV con tiempo_s, lluvia_mm (acumulada) o intensidad_mm_h, y caudal_m3s">Medición</span><input id="fMed" type="file" accept=".csv,.txt" hidden></div>
+  </div>
+</div>
+<div id="carga">preparando…</div>
+<script>
+(async () => {
+  if (!window.DATOS) {                                                                       // Lambda 9.2: los datos vienen de la corrida del proyecto abierto
+    const id = new URLSearchParams(location.search).get("id") || ""; document.getElementById("carga").textContent = "leyendo la corrida…";
+    const j = await (await fetch("/api/particulas/datos?id=" + encodeURIComponent(id), {cache: "no-store"})).json();
+    if (j.error) throw new Error(j.error);
+    window.DATOS = j;
+  }
+  const D = window.DATOS, nx = D.nx, ny = D.ny, N = nx * ny, NF = D.nf, NC = D.nc;
+  const des = async (b64) => { const bin = Uint8Array.from(atob(b64), c => c.charCodeAt(0)); const r = new Response(new Blob([bin]).stream().pipeThrough(new DecompressionStream("deflate"))); return new Uint8Array(await r.arrayBuffer()); };
+  const idx = new Uint32Array((await des(D.idx)).buffer), Q = await des(D.q), Zq = new Uint16Array((await des(D.z)).buffer);
+  const Z = new Float32Array(N); for (let k = 0; k < N; k++) Z[k] = D.zmin + Zq[k] / 65535 * (D.zmax - D.zmin);
+  const cuad = new Float32Array(256); for (let i = 0; i < 256; i++) cuad[i] = D.hmax * (i / 255) * (i / 255);   // 8 bits con raíz cuadrada → metros
+  const HF = (f, c) => cuad[Q[f * NC + c]];
+  const $ = (s) => document.querySelector(s);
+  $("#tit").textContent = "Lluvia a caudal · M13"; $("#sub").textContent = (D.proyecto || "") + " · Tr " + D.Tr + " · " + (D.storm_min / 60) + " h" + (D.escenario ? " · " + D.escenario : "");
+
+  if (D.hieto) $("#nota").textContent = "Visualización: la lluvia que cae sigue el hietograma de esta corrida; el agua se mueve según la pendiente de la superficie (cota + calado), no según velocidades guardadas. Marcas: calado del agua en ese punto (m), con el color de su clase. Arrastra para girar; rueda para acercar. «Medición» carga un CSV de cámara (tiempo_s desde el inicio de la lluvia). Sin calibrar ni validar.";
+  if (D.reconstruida) $("#nota").textContent = "Mosaico: solo se guarda el calado máximo y los tiempos de llegada y de pico; la subida entre ambos está reconstruida y después del pico se mantiene el máximo (sin recesión). La lluvia que cae sigue el aumento del volumen reconstruido. Arrastra para girar; rueda para acercar. «Medición» carga un CSV de cámara. Sin calibrar ni validar.";
+  // calado en la malla completa para el instante s (interpolado entre fotos) y su tendencia (m por foto)
+  const H = new Float32Array(N), DH = new Float32Array(N), S = new Float32Array(N);
+  const T0 = D.t[0], T1 = D.t[NF - 1], tAt = (f) => D.t[f];
+  function campo(s) {
+    let f = 0; while (f < NF - 2 && D.t[f + 1] <= s) f++;
+    const u = Math.min(1, Math.max(0, (s - D.t[f]) / (D.t[f + 1] - D.t[f])));
+    H.fill(0); DH.fill(0);
+    for (let c = 0; c < NC; c++) { const a = HF(f, c), b = HF(f + 1, c); H[idx[c]] = a + (b - a) * u; DH[idx[c]] = b - a; }
+    for (let k = 0; k < N; k++) S[k] = Z[k] + H[k];
+  }
+  // celdas mojadas alguna vez: lista para sembrar y puntos de seguimiento (picos locales de calado máximo)
+  const hmaxC = new Float32Array(N); for (let f = 0; f < NF; f++) for (let c = 0; c < NC; c++) { const h = HF(f, c); if (h > hmaxC[idx[c]]) hmaxC[idx[c]] = h; }
+  const marcas = []; { const ord = Array.from(idx).sort((a, b) => hmaxC[b] - hmaxC[a]);
+    for (const k of ord) { if (marcas.length >= 26) break; const i = k % nx, j = (k / nx) | 0; if (hmaxC[k] < 0.3) break; if (marcas.every(m => Math.hypot(m.i - i, m.j - j) > Math.max(14, Math.round(Math.max(nx, ny) / 26)))) marcas.push({ i, j, k, n: marcas.length + 1 }); } }
+
+  // clases de calado máximo, como la leyenda de QGIS de los mosaicos
+  const CLASES = [[.05, .25, [198, 226, 245], "0,05 – 0,25 m"], [.25, .5, [111, 184, 232], "0,25 – 0,50 m"], [.5, 1, [47, 127, 193], "0,50 – 1,00 m"], [1, 2, [245, 197, 66], "1,00 – 2,00 m"], [2, 4, [238, 125, 49], "2,00 – 4,00 m"], [4, 1e9, [165, 15, 43], "> 4,00 m"]];
+  const clase = (h) => { for (const c of CLASES) if (h < c[1]) return c; return CLASES[CLASES.length - 1]; };
+  $("#ley").innerHTML = "<b>Calado máximo</b>" + [...CLASES].reverse().map(c => `<div><i style="background:rgb(${c[2]})"></i>${c[3]}</div>`).join("") + "<div class='seco'><i></i>&lt; 0,05 m (seco)</div>";
+  // lienzo
+  const cv = $("#c"), g = cv.getContext("2d", { alpha: false, willReadFrequently: true }); let CW, CH, buf, b32, cx, cy, esc, base, ra, fl, lam, baseSucia = true;
+  function medir() { CW = cv.width = innerWidth; CH = cv.height = innerHeight; g.fillStyle = "#050608"; g.fillRect(0, 0, CW, CH); buf = g.getImageData(0, 0, CW, CH); b32 = new Uint32Array(buf.data.buffer); esc = Math.min(CW * .6 / nx, CH * .78 / (ny * .64)); cx = CW / 2; cy = CH * 0.47; lam = new Uint32Array(CW * CH); base = new Uint8Array(CW * CH); ra = new Uint8Array(CW * CH); fl = new Uint8Array(CW * CH); baseSucia = true; }
+  addEventListener("resize", medir); medir();
+  let tilt = .55, rel = .45, yawU = 0, yaw = 0, zoom = 1, deriva = .35, arrastrando = false;
+  let cY = 1, sY = 0;
+  const proy = (i, j, z, out) => { const a = (i - nx / 2) * esc * zoom, b = (j - ny / 2) * esc * zoom, x = a * cY - b * sY, y = a * sY + b * cY; out[0] = cx + x; out[1] = cy + y * (0.35 + 0.65 * (1 - tilt)) - (z - D.zmin) / (D.zmax - D.zmin) * rel * esc * zoom * 90 * tilt; };
+  const P = [0, 0];
+
+  // partículas
+  const M = 90000, px = new Float32Array(M), py = new Float32Array(M), pz = new Float32Array(M), est = new Uint8Array(M), vida = new Float32Array(M);   // est 0 libre · 1 cae · 2 fluye
+  const semilla = Array.from(idx);
+  function nacer(m, k) { px[m] = (k % nx) + Math.random(); py[m] = ((k / nx) | 0) + Math.random(); pz[m] = 170 + Math.random() * 190; est[m] = 1; vida[m] = 7 + Math.random() * 7; }   // pz = altura sobre el suelo en píxeles; vida = velocidad de caída
+  const pack = (v, a) => (a << 24) | (v << 16) | (v << 8) | v;
+  function plot(x, y, v, capa) { x |= 0; y |= 0; if (x < 0 || y < 0 || x >= CW || y >= CH) return; const o = y * CW + x, n = capa[o] + v; capa[o] = n > 255 ? 255 : n; }
+  // terreno como nube de puntos con sombreado de relieve (luz desde arriba-izquierda): es lo que da la textura tipo Gather
+  let Sh = null;
+  function sombreado() { Sh = new Float32Array(N); const dx = D.dx, ex = (D.zmax - D.zmin) || 1;
+    for (let j = 1; j < ny - 1; j++) for (let i = 1; i < nx - 1; i++) { const k = j * nx + i, gx = (Z[k + 1] - Z[k - 1]) / (2 * dx), gy = (Z[k + nx] - Z[k - nx]) / (2 * dx);
+      const sombra = Math.max(0, Math.min(1, .55 + (-gx * .7 - gy * .7) * 1.6)), alt = (Z[k] - D.zmin) / ex, bordeV = Math.min(1, Math.min(i, nx - 1 - i, j, ny - 1 - j) / 40);
+      Sh[k] = bordeV * (14 + 120 * sombra * (.5 + .5 * alt)); } }
+  function construirBase() {
+    if (!Sh) sombreado(); base.fill(0); const den = st.modo === "denso", pr = den ? .85 : .4, f = den ? .7 : .4;
+    const sk = Math.max(1, Math.ceil(Math.sqrt(N / 320000)));
+    for (let j = 1; j < ny - 1; j += sk) for (let i = 1; i < nx - 1; i += sk) { const k = j * nx + i, v = Sh[k] * f;
+      for (let r = 0; r < 2; r++) { if (Math.random() > pr) continue; proy(i + Math.random() * sk, j + Math.random() * sk, Z[k], P); const x = P[0] | 0, y = P[1] | 0; if (x >= 0 && y >= 0 && x < CW && y < CH) { const o = y * CW + x; if (v > base[o]) base[o] = v; } } }
+    baseSucia = false;
+  }
+
+  const st = { s: 0, jug: false, modo: "denso", marks: true, rel: false, ritmo: true, estela: .7, lluvia: .6 };
+  let libre = 0, ultimo = performance.now(), frameVis = -1;
+  function fase(s) { const V = interp(D.V, s), Vm = Math.max(...D.V), dv = (interp(D.V, s + 900) - interp(D.V, s - 900)); const u = V / Vm; const a = dv > 0 && u < .85, b = !a && u >= .3; return [dv > 0 && u < .3 ? 1 : 0, a ? 1 : 0, b || u >= .3 ? 1 : 0]; }
+  function interp(A, s) { let f = 0; while (f < NF - 2 && D.t[f + 1] <= s) f++; const u = Math.min(1, Math.max(0, (s - D.t[f]) / (D.t[f + 1] - D.t[f]))); return A[f] + (A[Math.min(f + 1, NF - 1)] - A[f]) * u; }
+  const Vmax = Math.max(...D.V);
+  const HI = D.hieto ? D.hieto.lluvia_mm.map((mm, i) => mm / Math.max(1, D.hieto.fin_s[i] - D.hieto.inicio_s[i]) * 3600) : null, HImax = HI ? Math.max(...HI, 1e-9) : 1;
+  const hietoU = (s) => { if (!HI) return null; for (let i = 0; i < HI.length; i++) if (s >= D.hieto.inicio_s[i] && s < D.hieto.fin_s[i]) return HI[i] / HImax; return 0; };   // intensidad relativa de la tormenta de la corrida
+  const dVmax = (() => { let m = 1; for (let q = 0; q < 300; q++) { const s = T0 + (T1 - T0) * q / 300; m = Math.max(m, interp(D.V, s + 600) - interp(D.V, s - 600)); } return m; })();
+  const hhmm = (s) => { const m = Math.round(s / 60); return Math.floor(m / 60) + " h " + String(m % 60).padStart(2, "0"); };
+
+  // curva de volumen (línea fina)
+  const cc = $("#cv").getContext("2d");
+  function curva() { const w = $("#cv").width, h = 46; cc.clearRect(0, 0, w, h); cc.strokeStyle = "rgba(255,255,255,.35)"; cc.lineWidth = 1; cc.beginPath();
+    for (let f = 0; f < NF; f++) { const x = (D.t[f] - T0) / (T1 - T0) * w, y = h - 8 - D.V[f] / Vmax * (h - 14); f ? cc.lineTo(x, y) : cc.moveTo(x, y); } cc.stroke();
+    if (MED.t) for (const [A, mx, col] of [[MED.I, MED.Imax, "rgba(255,255,255,.7)"], [MED.Q, MED.Qmax, "rgba(90,170,255,.95)"]]) { if (!A) continue; cc.strokeStyle = col; cc.beginPath(); MED.t.forEach((tt, i) => { const x = tt / (T1 - T0) * w, y = h - 8 - A[i] / mx * (h - 14); i ? cc.lineTo(x, y) : cc.moveTo(x, y); }); cc.stroke(); }
+    const x = (st.s - T0) / (T1 - T0) * w; cc.strokeStyle = "#fff"; cc.beginPath(); cc.moveTo(x, 0); cc.lineTo(x, h); cc.stroke(); }
+
+  // medición externa (posdoc: fotos de cámara): lluvia medida y caudal medido. Se muestran tal cual; no se calibra ni se compara con el modelo aquí.
+  const MED = { t: null, I: null, Q: null, Imax: 0, Qmax: 0 };
+  function cargarMed(txt) {
+    const L = txt.split(/\r?\n/).filter(l => l.trim() && !l.trim().startsWith("#")); const sep = L[0].includes(";") ? ";" : ","; const num = v => parseFloat(String(v).replace(sep === ";" ? "," : "", sep === ";" ? "." : "") || "NaN");
+    const cab = L[0].split(sep).map(x => x.trim().toLowerCase()), col = n => cab.findIndex(h => h.startsWith(n)); const ct = col("tiempo"), cl = col("lluvia"), ci = col("intens"), cq = col("caudal");
+    if (ct < 0 || (cl < 0 && ci < 0 && cq < 0)) throw new Error("Faltan columnas: tiempo_s y (lluvia_mm o intensidad_mm_h o caudal_m3s).");
+    const f = L.slice(1).map(l => l.split(sep)), t = f.map(r => num(r[ct])); let I = null, Q = null;
+    if (ci >= 0) I = f.map(r => num(r[ci])); else if (cl >= 0) { const A = f.map(r => num(r[cl])); I = A.map((a, i) => i ? Math.max(0, (a - A[i - 1]) / (t[i] - t[i - 1]) * 3600) : 0); }
+    if (cq >= 0) Q = f.map(r => num(r[cq]));
+    MED.t = t; MED.I = I; MED.Q = Q; MED.Imax = I ? Math.max(...I.filter(Number.isFinite), 1e-9) : 0; MED.Qmax = Q ? Math.max(...Q.filter(Number.isFinite), 1e-9) : 0; $("#bMed").classList.add("on");
+  }
+  function medEn(A, tm) { const t = MED.t; if (!A || tm < t[0] || tm > t[t.length - 1]) return null; let i = 0; while (i < t.length - 2 && t[i + 1] <= tm) i++; const u = (tm - t[i]) / ((t[i + 1] - t[i]) || 1); return A[i] + (A[i + 1] - A[i]) * u; }
+  const ritmo = (s) => !st.ritmo ? 1 : 1 - 0.8 * Math.min(1, Math.max(0, (interp(D.V, s) / Vmax - .4) / .4));
+  function paso(dt) {
+    if (st.jug) { st.s += dt * ((T1 - T0) / 40) * ritmo(st.s); if (st.s >= T1) { st.s = T1; st.jug = false; $("#ply").textContent = "↺"; } $("#sT").value = (st.s - T0) / (T1 - T0); }
+    campo(st.s);
+    // desvanecer estela
+    const fade = 1 - (1 - st.estela) * .35 - 0.045, n = CW * CH;
+    yaw = yawU + (deriva > 0 && !arrastrando ? Math.sin(performance.now() / 7000) * .55 * deriva : 0); cY = Math.cos(yaw); sY = Math.sin(yaw); if (deriva > 0 || arrastrando) baseSucia = true;
+    if (baseSucia) construirBase();
+    for (let o = 0; o < n; o++) { ra[o] = (ra[o] * fade) | 0; fl[o] = (fl[o] * fade) | 0; }
+    // agua acumulada: puntos azules sobre las celdas mojadas, más intensos con más calado
+    lam.fill(0); for (let c = 0; c < NC; c++) { const k = idx[c], h = H[k]; if (h < .05) continue; proy((k % nx) + Math.random(), ((k / nx) | 0) + Math.random(), S[k], P); { if (h < .05) continue; const cl = clase(h)[2], br = .72 + .28 * Math.min(1, h / 2), x = P[0] | 0, y = P[1] | 0; if (x >= 0 && y >= 0 && x < CW && y < CH) lam[y * CW + x] = 0xff000000 | ((cl[2] * br) << 16) | ((cl[1] * br) << 8) | (cl[0] * br); } }
+    // lluvia: sembrar gotas donde el calado sube entre fotos
+    const tasa = st.lluvia * (st.modo === "denso" ? 1 : .35) * 5200;
+    let sem = 0, pesoTot = 0; for (let c = 0; c < NC; c += 7) { const d = DH[idx[c]]; if (d > 0) pesoTot += d; }
+    if (pesoTot > 0 && st.jug !== null) for (let c = 0; c < NC && sem < tasa; c += 3) { const k = idx[c], d = DH[k]; if (d > 0 && Math.random() < Math.min(1, d * 6)) { while (est[libre] && libre < M - 1) libre++; if (libre >= M - 1) libre = 0; if (!est[libre]) { nacer(libre, k); sem++; } } }
+    // caudal: el agua ya acumulada se siembra de partículas en proporción a su calado (más calado, más partículas)
+    { const n = (st.modo === "denso" ? 7000 : 2200); for (let r = 0; r < n; r++) { const k = idx[(Math.random() * NC) | 0], h = H[k]; if (h < .05 || Math.random() > Math.min(1, h * .9)) continue;
+      while (est[libre] && libre < M - 1) libre++; if (libre >= M - 1) libre = 0; if (!est[libre]) { px[libre] = (k % nx) + Math.random(); py[libre] = ((k / nx) | 0) + Math.random(); pz[libre] = 0; est[libre] = 2; vida[libre] = Math.random() * 40; } } }
+    // cortina de lluvia sobre todo el dominio: su intensidad sigue el aumento del volumen de agua del modelo (no el hietograma, que la corrida no guarda)
+    { const im = MED.t && MED.I ? medEn(MED.I, st.s - T0) : null, hu = hietoU(st.s), u = im != null ? Math.max(0, im) / MED.Imax : (hu != null ? hu : Math.max(0, interp(D.V, st.s + 600) - interp(D.V, st.s - 600)) / dVmax), nC = st.lluvia * (st.modo === "denso" ? 420 : 150) * Math.sqrt(u);
+      for (let r = 0; r < nC; r++) { const i = 2 + ((Math.random() * (nx - 4)) | 0), j = 2 + ((Math.random() * (ny - 4)) | 0); while (est[libre] && libre < M - 1) libre++; if (libre >= M - 1) libre = 0; if (!est[libre]) nacer(libre, j * nx + i); } }
+    const vel = 1.6 * (st.modo === "denso" ? 1 : 1.2), sc = st.estela > .5 ? 1 : .8;
+    for (let m = 0; m < M; m++) {
+      if (!est[m]) continue;
+      if (est[m] === 1) {   // cae desde arriba como raya con cola
+        const i = px[m] | 0, j = py[m] | 0, k = j * nx + i; pz[m] -= vida[m]; proy(px[m], py[m], S[k], P); const gy = P[1], gx = P[0];
+        if (pz[m] > 0) { for (let q = 0; q < 7; q++) plot(gx, gy - pz[m] - q * 1.4, 70 - q * 9, ra); continue; }
+        plot(gx, gy, 150, ra); plot(gx - 1, gy, 70, ra); plot(gx + 1, gy, 70, ra);   // salpicadura
+        if (H[k] > .03) { est[m] = 2; vida[m] = 0; } else est[m] = 0; continue; }
+      // fluye siguiendo la pendiente de la superficie
+      const i = Math.round(px[m]), j = Math.round(py[m]); if (i < 1 || j < 1 || i >= nx - 1 || j >= ny - 1) { est[m] = 0; continue; }
+      const k = j * nx + i; if (H[k] < .02) { est[m] = 0; continue; }
+      let gx = S[k - 1] - S[k + 1], gy = S[k - nx] - S[k + nx]; const gm = Math.hypot(gx, gy);
+      if (gm > 1e-5) { const v = vel * Math.min(1.4, .35 + Math.sqrt(H[k]) * .5); px[m] += gx / gm * v * .6 + (Math.random() - .5) * .15; py[m] += gy / gm * v * .6 + (Math.random() - .5) * .15; }
+      vida[m] += 1; if (vida[m] > 90 + 60 * Math.random()) { est[m] = 0; continue; }
+      proy(px[m], py[m], S[k], P); plot(P[0], P[1], 38 + Math.min(95, H[k] * 22), fl);
+    }
+    // composición: terreno gris, lluvia blanca, caudal azul (tono cian a azul profundo según el calado ya va en la intensidad)
+    for (let o = 0; o < n; o++) { const b = base[o], r = ra[o], f = fl[o], lc = lam[o], lr = lc & 255, lg = (lc >> 8) & 255, lb = (lc >> 16) & 255; const R = Math.min(255, Math.max(b, r, lr) + f * .22), G = Math.min(255, Math.max(b, r, lg) + f * .62), B = Math.min(255, Math.max(b, r, lb) + f * 1.25); b32[o] = 0xff000000 | (B << 16) | (G << 8) | R; }
+    g.putImageData(buf, 0, 0);
+    // marcas tipo seguimiento
+    if (st.marks) { g.font = "10px 'Segoe UI',sans-serif"; g.textBaseline = "middle"; for (const mk of marcas) { const h = H[mk.k]; if (h < .05) continue; const cm = clase(h)[2]; proy(mk.i, mk.j, S[mk.k], P); const x = P[0], y = P[1]; g.strokeStyle = "rgb(" + cm + ")"; g.lineWidth = 1.4; g.beginPath();
+      g.moveTo(x - 6, y - 3); g.lineTo(x - 6, y - 6); g.lineTo(x - 3, y - 6); g.moveTo(x + 3, y - 6); g.lineTo(x + 6, y - 6); g.lineTo(x + 6, y - 3); g.moveTo(x + 6, y + 3); g.lineTo(x + 6, y + 6); g.lineTo(x + 3, y + 6); g.moveTo(x - 3, y + 6); g.lineTo(x - 6, y + 6); g.lineTo(x - 6, y + 3); g.stroke();
+      g.fillStyle = "rgba(255,255,255,.85)"; g.fillText(h.toLocaleString("es-EC", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " m", x + 12, y); } }
+    $("#tt").textContent = hhmm(st.s); $("#vv").textContent = Math.round(interp(D.V, st.s) / 1000).toLocaleString("es-EC");
+    if (MED.t) { const im = medEn(MED.I, st.s - T0), qm = medEn(MED.Q, st.s - T0); $("#med").textContent = "medido · " + (im != null ? im.toLocaleString("es-EC", { maximumFractionDigits: 1 }) + " mm/h" : "—") + " · " + (qm != null ? qm.toLocaleString("es-EC", { maximumFractionDigits: 2 }) + " m³/s" : "—"); }
+    const [f1, f2, f3] = fase(st.s); $("#f1").classList.toggle("on", !!f1); $("#f2").classList.toggle("on", !!f2); $("#f3").classList.toggle("on", !!f3); curva();
+  }
+  function bucle(ahora) { requestAnimationFrame(bucle); const dt = Math.min(.1, (ahora - ultimo) / 1000); ultimo = ahora; paso(dt); }
+
+  $("#bMed").onclick = () => $("#fMed").click();
+  $("#fMed").onchange = async (e) => { try { cargarMed(await e.target.files[0].text()); } catch (er) { alert(er.message); } };
+  { const q = new URLSearchParams(location.hash.slice(1)).get("medtxt"); if (q) cargarMed(q); }   // prueba
+  $("#sDe").oninput = (e) => deriva = +e.target.value;
+  { let ux = 0, uy = 0; const c = $("#c");
+    c.addEventListener("pointerdown", (e) => { arrastrando = true; ux = e.clientX; uy = e.clientY; c.setPointerCapture(e.pointerId); });
+    c.addEventListener("pointermove", (e) => { if (!arrastrando) return; yawU += (e.clientX - ux) * .006; tilt = Math.min(1, Math.max(.12, tilt + (e.clientY - uy) * .003)); $("#sIn").value = tilt; ux = e.clientX; uy = e.clientY; });
+    c.addEventListener("pointerup", () => { arrastrando = false; });
+    c.addEventListener("wheel", (e) => { e.preventDefault(); zoom = Math.min(3, Math.max(.5, zoom * (e.deltaY < 0 ? 1.08 : .93))); baseSucia = true; }, { passive: false }); c.style.cursor = "grab"; }
+  $("#ply").onclick = () => { if (st.s >= T1) st.s = T0; st.jug = !st.jug; $("#ply").textContent = st.jug ? "❚❚" : "▶"; };
+  $("#sT").oninput = (e) => { st.s = T0 + +e.target.value * (T1 - T0); est.fill(0); };
+  $("#sLl").oninput = (e) => st.lluvia = +e.target.value; $("#sEs").oninput = (e) => st.estela = +e.target.value;
+  $("#sRe").oninput = (e) => { rel = +e.target.value; baseSucia = true; }; $("#sIn").oninput = (e) => { tilt = +e.target.value; baseSucia = true; };
+  document.querySelectorAll("#mR span").forEach(s => s.onclick = () => { st.modo = s.dataset.m; baseSucia = true; document.querySelectorAll("#mR span").forEach(x => x.classList.toggle("on", x === s)); });
+  document.querySelectorAll("#mM span").forEach(s => s.onclick = () => { st[s.dataset.k] = !st[s.dataset.k]; s.classList.toggle("on", st[s.dataset.k]); });
+  st.rel = false; document.querySelector('#mM [data-k="rel"]').classList.remove("on");
+  { const q = new URLSearchParams(location.hash.slice(1)); if (q.get("t")) { st.s = T0 + +q.get("t") * (T1 - T0); $("#sT").value = q.get("t"); } if (q.get("play")) { st.jug = true; $("#ply").textContent = "❚❚"; } }
+  { const w = +new URLSearchParams(location.hash.slice(1)).get("warm"); for (let i = 0; i < w; i++) paso(0.03); }   // prueba: adelanta w fotogramas
+  window.__p = { st, marcas, D }; requestAnimationFrame(bucle); $("#carga").classList.add("fuera");
+})().catch(e => { document.getElementById("carga").textContent = "Error: " + e.message; console.error(e); });
+</script>
+</body>
+</html>

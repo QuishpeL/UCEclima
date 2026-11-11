@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """CMIP6 · selección de modelos (ClimWIP), corrección de sesgo (QQM/QDM), validación cruzada impar/par, ensamble por quintiles y factores de cambio — sobre lluvia DIARIA de una celda.
 
 Metodología (ver MODULO_CMIP6.md): Brunner et al. 2020 (ClimWIP: pesos por desempeño e independencia), Cannon et al. 2015 (QDM: la corrección preserva el cambio relativo de los cuantiles),

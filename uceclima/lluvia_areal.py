@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Lluvia areal de la cuenca activa con estaciones del proyecto (C12): Thiessen dinámico o IDW.
 
 Thiessen dinámico: cada día se usan solo las estaciones con dato ese día; los polígonos de Thiessen de ESE conjunto se recortan a la cuenca y

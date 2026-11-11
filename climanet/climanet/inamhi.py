@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """IDF oficiales INAMHI (libro de intensidades) como fuente de Climanet.
 
 Método del libro: i(Tr,t) = K * Idtr(Tr) * t^-n  (i mm/h, t min, Idtr = intensidad máx. 24 h).

@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Fase 2 · C12 (lluvia areal Thiessen/IDW), C13 (recesión del caudal base) y R4 (comparación de la calibración). Respuesta conocida, sin red.
 Ejecutar: python -m uceclima.tests.test_fase2_calibracion"""
 import json, shutil, sys, tempfile, traceback

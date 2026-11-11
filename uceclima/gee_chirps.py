@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Módulo 2 — Google Earth Engine y CHIRPS. Sin credenciales en el repositorio; con caché local; sin descargas masivas.
 
 Flujo: iniciar() -> disponibilidad() -> eventos.elegir_producto() (una sola versión, con fallback explícito) -> serie_por_cuenca() -> ventanas().

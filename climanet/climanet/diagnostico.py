@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Diagnóstico de entradas de caudal: ¿la celda de entrada está sobre un cauce y por dónde sale el agua inyectada?
 
 Solo diagnostica la topografía de la malla del modelo (D8 sobre el terreno remuestreado). NO evalúa capacidad

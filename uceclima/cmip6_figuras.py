@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Epsilon · gráficas principales del módulo CMIP6 (no cambian ningún cálculo; leen lo ya guardado y escriben PNG nuevos).
  1) bondad_qqm.png       Bondad de la corrección de sesgo del mejor modelo (RMSE más bajo) con validación cruzada impar/par:
                          ciclo anual (izq.) y Q-Q de totales mensuales (der.). La corrección ajusta la distribución histórica;

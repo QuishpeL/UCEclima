@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Gráficos y tablas de una descarga CHIRPS, guardados DENTRO de la carpeta de esa descarga (dentro de la carpeta del proyecto): totales anuales con tendencia (Mann-Kendall + Sen),
 máximos diarios anuales, climatología mensual y curva de excedencia de la lluvia diaria. Solo describe lo descargado: no rellena ni corrige. CHIRPS es un producto de satélite, no una medición de campo."""
 from datetime import datetime

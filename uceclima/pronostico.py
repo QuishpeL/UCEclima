@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Módulo de PRONÓSTICO de lluvia (7b): GFS (NOAA, EE. UU.), ECMWF IFS (Europa) y NASA GPM IMERG (satélite, lluvia ya caída), más el caudal pronosticado
 de GEOGLOWS v2 para el agua de la sierra. Parte de los scripts de la prueba de Yaguachi y de Santa Cruz (pronostico_hoy, tabla_lluvia_6dias, imerg_semana).
 

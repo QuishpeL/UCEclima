@@ -1,4 +1,4 @@
-﻿# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+﻿# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Zeta 8.0.0 · pruebas de Z1 (cobertura CHIRPS), Z2 (sesión de Earth Engine), Z3 (proyecto desde shape + IDF propia), Z4 (productos ordenados),
 Z5 (papers: reescalado mes-año, razón de varianza, N efectivo, ToE con ruido de estación) y Z6 (λ hasta 0,6). Sin red y sin corridas.
 Ejecutar: python -m uceclima.tests.test_zeta  (desde UCEclima)"""

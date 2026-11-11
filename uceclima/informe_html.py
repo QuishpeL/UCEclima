@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Omega O6 · INFORME HTML autocontenido de un proyecto (un solo archivo: figuras incrustadas, sin dependencias externas, legible en el celular).
 Todo sale de los resultados del proyecto (resumen.json, exposicion.xlsx, configuración, estaciones, cuencas, CMIP6): ninguna cifra se escribe a mano.
 Cada sección aparece solo si existen sus insumos; lo que falta se dice. Los resultados siguen siendo NO calibrados ni validados."""

@@ -1,5 +1,11 @@
 # UCEclima 9.1.0 "Lambda"
 
+> **Branch `lambda-9.2` — development version 9.2.0 (not released).** The version described in the manuscript submitted to
+> Environmental Modelling & Software (ENVSOFT-D-26-03951) and archived on Zenodo is **9.1.0**, on the `main` branch and release `v9.1.0`.
+> 9.2.0 adds automatic external catchments, GEOGLOWS v2 inflow hydrographs for large ungauged rivers, a rain-to-runoff particle viewer
+> (module 13), a small connection indicator and CC BY-NC 4.0 licence headers in every file; see `CHANGELOG_LAMBDA.md` (Spanish).
+> The hydrological, hydraulic and CMIP6 core of 9.1.0 is unchanged; the new inputs act only when declared.
+
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24122769.svg)](https://doi.org/10.5281/zenodo.24122769)
 
 Archived release (installer, source code and manual): https://doi.org/10.5281/zenodo.24122769

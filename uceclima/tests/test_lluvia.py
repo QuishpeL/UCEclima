@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Pruebas del módulo 1 (lluvia y eventos). Ejecutar: python -m uceclima.tests.test_lluvia  (desde MILAGRO)"""
 import sys, traceback
 from datetime import datetime, timedelta

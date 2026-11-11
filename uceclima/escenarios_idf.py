@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Escenarios de lluvia de DISEÑO (todos históricos; ninguno es cambio climático) para contrastar qué tan sensible es el resultado a la IDF elegida:
   directa     IDF oficial INAMHI de la estación de referencia, sin escalar (principal).
   observado   la misma IDF reescalada para que su lluvia de 24 h Tr 100 iguale el Gumbel de los MÁXIMOS ANUALES OBSERVADOS en esa estación (del propio proyecto).

@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Time of Emergence (ToE) de la lluvia: año en que la señal de cambio (Y, SSP5-8.5) sale del ruido.
 
 Gamma (21-oct-2026), alineado con el proceso de Machala/Gualaquiza (scripts 22 y 26; Hawkins y Sutton 2012, Lickley et al. 2024):

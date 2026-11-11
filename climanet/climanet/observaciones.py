@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Ficha de observaciones de campo: esquema, validación de completitud y extracción para la compuerta de línea base.
 
 NO inventa ni imputa datos: solo comprueba que lo aportado sea utilizable y dice qué falta.

@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """OTRAS DESCARGAS de Earth Engine (opcionales): capas que enriquecen la base de datos del proyecto, siguiendo las referencias de Machala y Gualaquiza (pendiente, hidrografía, suelo y erosión RUSLE,
 cobertura y vegetación, población, clima y emisiones). Cada capa se baja SOLO para el área del proyecto, en su resolución nativa (o la menor que quepa en una petición), y se guarda en la carpeta del proyecto
 con su manifiesto (fuente, fecha, escala, estadísticos) y una vista previa. Tres tipos: «imagen» (GeoTIFF), «serie» (CSV mensual promediado en el área) y «tabla» (CSV de objetos).

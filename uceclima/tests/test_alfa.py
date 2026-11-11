@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """UCEclima Alfa: configuración por módulo, lámina del MDT, descargas reanudables, agente VS Code y módulos independientes. Sin red.
 Ejecutar: python -m uceclima.tests.test_alfa"""
 import json, os, shutil, sys, tempfile, threading, time, traceback, urllib.request, urllib.error

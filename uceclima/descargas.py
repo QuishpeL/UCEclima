@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Descargas REPRODUCIBLES de datos externos para un proyecto (como en un equipo recién instalado): CHIRPS (Earth Engine), GEOGLOWS (caudal reanalizado) y series de CELEC.
 Reglas: una descarga a la vez; cada descarga va a una carpeta NUEVA con marca de tiempo (nunca sobrescribe); cada una deja un manifiesto (fuente, parámetros, fecha UTC, versión,
 SHA-256) y un estado legible; sin credenciales en disco (Earth Engine usa las del sistema); los datos faltantes quedan vacíos (nunca 0); consultas pequeñas y por trozos.
@@ -501,3 +501,12 @@ def _registrar_fuentes_cuenca():
 
 
 _registrar_fuentes_cuenca()
+
+
+# ------------------------------------------------------------------------------------------------ Lambda 9.2 (aditivo): cuencas externas automáticas y entradas GEOGLOWS
+def _registrar_fuentes_externas():
+    from . import externas_auto as _X
+    FUENTES.update({"externas": _X.fuente_externas, "geoglows_entrada": _X.fuente_geoglows_entrada})
+
+
+_registrar_fuentes_externas()

@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Omega · figuras en INGLÉS solo para los papers (regla del usuario, 27-oct-2026): el programa, los informes y el manual siguen en español.
 traducir(fig) recorre todos los textos de una figura de matplotlib (títulos, ejes, leyendas, rótulos, ticks y barra de color) y aplica un diccionario
 de frases (de la más larga a la más corta) + coma decimal → punto. restos(fig) devuelve los textos que aún parecen español, para revisarlos."""

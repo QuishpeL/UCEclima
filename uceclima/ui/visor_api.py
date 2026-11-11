@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Datos del visor 3D de resultados: terreno y capas REALES de una corrida (calado máximo, velocidad máxima, duración con calado ≥ 0,3 m).
 No calcula nada nuevo: solo lee los rásteres que escribió el núcleo y los entrega como mallas regulares. Una capa que no existe o no coincide con la malla se omite."""
 import json

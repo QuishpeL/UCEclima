@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Auditoría reproducible del Excel IDF (atribución aportada por el usuario: Caiza 2026) y recomputo independiente en Python.
 
 NO sustituye la IDF oficial del libro INAMHI: documenta qué contiene el archivo, recalcula su cadena de métodos y compara con sus celdas.

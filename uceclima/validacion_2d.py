@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Epsilon · validación de la corrida 2D con observaciones. Cuatro fuentes, contrastadas contra la MISMA corrida:
   1) caudal observado en la estación de salida (por defecto, de observaciones/aforos_caudal.csv)        → KGE, NSE, error de pico y de volumen
   2) mancha de agua Sentinel-1 (por defecto, Earth Engine con la cuenta de la persona)                → CSI, aciertos, falsas alarmas

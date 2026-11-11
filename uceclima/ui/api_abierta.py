@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """API abierta de UCEclima para agentes de IA y scripts: clave de acceso local, especificación OpenAPI y guía para modelos de lenguaje.
 La API es la misma que usa la interfaz (nada duplicado). Solo escucha en 127.0.0.1. Las lecturas (GET) no piden clave; las acciones (POST) piden
 la clave en `Authorization: Bearer <clave>`. La clave vive en %USERPROFILE%\\.uceclima\\api_key.txt; quien tenga ese archivo ya tiene acceso a la cuenta de Windows."""

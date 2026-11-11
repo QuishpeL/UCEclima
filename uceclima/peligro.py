@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Mapas de CALADO, VELOCIDAD y PELIGRO de una corrida (botón del módulo 8 y de «Resultados y entregas»).
 
 Parte de la herramienta externa `mapas_peligro.py` de Eta y la integra al programa. Lee lo que el núcleo ya deja en cada corrida (hmax.tif, vmax.tif),

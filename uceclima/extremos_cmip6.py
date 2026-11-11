@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Eta 9.0.0 · «Analizar extremos» (módulo 9) y paquete CMIP6 del territorio.
 
 Pedido del usuario en la prueba de novato con el río Yaguachi (1-nov-2026): la serie anual del ensamble muestra la tendencia pero no los

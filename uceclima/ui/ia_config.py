@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Conectar UCEclima a una IA: genera (y, con un clic del usuario, instala) la entrada del servidor MCP para Claude Desktop, Claude Code (.mcp.json) y VS Code (.vscode/mcp.json).
 Fusiona sin borrar nada de lo que ya haya en esos archivos y deja una copia .bak. No toca credenciales: el servidor MCP lee la clave local de ~/.uceclima/api_key.txt."""
 import json, os, sys

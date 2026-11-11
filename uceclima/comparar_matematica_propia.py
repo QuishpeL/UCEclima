@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Comparación numérica (mismas entradas) entre el hidro actual (climanet) y las funciones de matematica_propia.
 
 SOLO LECTURA sobre el flujo: no modifica proyectos ni resultados de corridas; escribe una carpeta nueva con sello de tiempo.

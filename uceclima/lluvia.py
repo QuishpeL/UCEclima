@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Módulo 1 — Lluvia y eventos. Dos objetos SEPARADOS que nunca se convierten entre sí en silencio:
 
   DisenoIDF        tormenta de diseño (Tr, duración, distribución por bloques alternos). Sin fecha meteorológica inherente.

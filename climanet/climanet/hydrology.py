@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Hietogramas y SCS-CN con unidades y volumen explícitos, sin factor climático implícito."""
 import numpy as np
 INTEGRATE = np.trapezoid if hasattr(np, 'trapezoid') else np.trapz

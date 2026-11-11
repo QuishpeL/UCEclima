@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """ENTREGAS: una carpeta ordenada con TODO lo que produce el proyecto (shapes, CSV/Excel, mapas, figuras) y, dentro, una subcarpeta de INSUMOS para cada programa que viene después:
   02_BCA_FEMA              análisis beneficio–costo (peligro por escenario, exposición de edificaciones, población y vías, frecuencia/Tr, factor de cambio climático);
   03_ENSO_El_Nino_La_Nina  software de El Niño / La Niña (lluvia mensual y anual, series del premódulo, índice ONI, factores CMIP6);

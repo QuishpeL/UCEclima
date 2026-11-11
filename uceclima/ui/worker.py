@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Proceso de cálculo (separado de la interfaz). Uso: python -m uceclima.ui.worker <carpeta_de_corrida>
 Lee entrada.json, ejecuta el núcleo CLIMANET (pipeline.run), escribe estado.json/registro.log y genera el mapa. No hay lógica científica aquí."""
 import json, re, sys, time, traceback

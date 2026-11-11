@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Conexión con Google Earth Engine DENTRO de la interfaz (sin consola): 1) proyecto de Google Cloud de cada persona, 2) autorización en el navegador con SU cuenta de Google,
 3) inicialización y verificación real de la conexión (se consulta un dato de CHIRPS). El programa nunca lee, muestra ni guarda el token: lo escribe la propia librería `ee`
 en su carpeta de credenciales habitual. Solo el ID del proyecto se guarda en ~/.uceclima/config.json.

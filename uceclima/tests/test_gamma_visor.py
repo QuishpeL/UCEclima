@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Gamma · película del calado en el visor 3D: el núcleo guarda fotos del calado en el tiempo (evolucion_calado.npz), la API las entrega
 y el visor las reproduce, más lento en la crecida. Las fotos son lo que el solver tuvo en ese instante; no alteran el cálculo.
 Ejecutar: python -m uceclima.tests.test_gamma_visor  (desde UCEclima)"""

@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Proyectos de demostración. El SINTÉTICO se rotula siempre como tal; el de Milagro usa datos reales con un área mínima.
 Ninguno sobrescribe: si la carpeta existe, se abre tal cual."""
 import json

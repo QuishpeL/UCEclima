@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Pipeline integrado: DEM + IDF oficial + lluvia sobre malla (área interna) + cuencas externas (BasinModel)
 como hidrogramas de entrada al solver 2D + procedencia.
 
@@ -69,6 +69,12 @@ def verificar_config(cfg):
             errores.append(f"Cuenca externa {c.get('nombre')}: falta tc_h o lag_h (con su fuente)")
         if c.get("entrada_xy") is None:
             errores.append(f"Cuenca externa {c.get('nombre')}: entrada_xy pendiente; la entrada debe definirse sobre un canal confirmado")
+    for e in cfg.get("entradas_geoglows", []) or []:                                # Lambda 9.2: río grande sin datos → hidrograma de GEOGLOWS
+        for k in ("nombre", "xy", "gumbel", "forma"):
+            if not e.get(k):
+                errores.append(f"Entrada GEOGLOWS {e.get('nombre')}: falta '{k}' (vuelve a analizar el tramo en la pantalla)")
+    if cfg.get("evento_observado") and cfg.get("entradas_geoglows"):
+        errores.append("Las entradas GEOGLOWS solo se usan con tormentas de diseño (un evento observado no tiene período de retorno): quítalas o usa el diseño IDF")
     if cfg.get("evento_observado"):
         if cfg.get("cuencas_externas"):
             errores.append("evento_observado con cuencas_externas aún no está soportado (los hidrogramas externos se generan con la tormenta de diseño); se omiten o se usa el diseño IDF")
@@ -375,6 +381,17 @@ def run(cfg, scenario=ETIQUETA, tr=None, progress=print):
         inlets.append({"nombre": nom_, "t": t_, "q": q_, "celdas": [list(rc_)]})
         entradas_csv.append({"nombre": nom_, "celda": list(rc_), "xy": [float(v) for v in e_["xy"]], "pico_m3s": float(q_.max()),
                              "volumen_m3": float((np.trapezoid if hasattr(np, "trapezoid") else np.trapz)(q_, t_)), "fuente": e_.get("csv") or "lista"})
+    entradas_geo = []                                                 # Lambda 9.2: ríos grandes sin datos de caudal → GEOGLOWS v2 (pico Gumbel del Tr de esta corrida)
+    if cfg.get("entradas_geoglows"):
+        from . import entradas_geoglows as EG
+        t_pico_tormenta = float(edges[int(np.argmax(blocks))] + edges[int(np.argmax(blocks)) + 1]) / 2.0
+        sim_geo = float(cfg.get("sim_horas", 6)) * 3600
+        for k_, e_ in enumerate(cfg["entradas_geoglows"]):
+            t_, q_, inf_ = EG.hidrograma(e_, None if ev else tr, t_pico_tormenta, sim_geo)
+            rc_ = _celda_de_xy(e_["xy"], meta, active); nom_ = str(e_.get("nombre") or f"geoglows_{k_ + 1}")
+            inlets.append({"nombre": nom_, "t": t_, "q": q_, "celdas": [list(rc_)]})
+            entradas_geo.append({**inf_, "nombre": nom_, "celda": list(rc_), "xy": [float(v) for v in e_["xy"]]})
+            progress(f"Entrada GEOGLOWS {nom_}: pico {inf_['pico_m3s']} m3/s (Tr {tr}, Gumbel de {inf_['n_anios_gumbel']} años" + (", EXTRAPOLADO" if inf_["extrapolado"] else "") + f") a las {inf_['t_pico_h']} h")
     sim_s = float(cfg.get("sim_horas", 6)) * 3600
     if inlets:
         sim_s = max(sim_s, max(float(h["t"][-1]) for h in inlets) + 300.0)   # cubrir la cola completa de cada hidrograma
@@ -426,6 +443,8 @@ def run(cfg, scenario=ETIQUETA, tr=None, progress=print):
         r["resumen"]["solver_subgrid"] = {"m": modelo_sg["m"], "rf_m": modelo_sg["rf"], "cresta": cfg.get("cresta", "mean")}
     s = r["resumen"]
     s["entradas_diagnostico"] = diag_entradas
+    if entradas_geo:
+        s["entradas_geoglows"] = entradas_geo
     fx = (ev or {}).get("forzamiento_externo") or {}
     tipo_ev = "pronostico" if fx.get("tipo") == "pronostico" else ("estimacion_satelital" if fx.get("tipo") == "satelite" else "evento_observado")
     if fx:

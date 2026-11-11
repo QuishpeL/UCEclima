@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """CN y Manning ESTIMADOS desde Earth Engine (por defecto, siempre): cobertura ESA WorldCover v200 (2021) × textura de suelo OpenLandMap (USDA, b0) → grupo hidrológico → CN; Manning por cobertura.
 Es el MISMO método y las MISMAS tablas con que CLIMANET preparó los insumos de Milagro (`MILAGROCODEX/prepare_inputs.py`, 2026-10-07): tablas de referencia, NO calibradas ni medidas.
 Reglas: la malla es la del MDT registrado del proyecto; no hay valores por defecto silenciosos (si queda un hueco de cobertura, se detiene); los huecos del mapa de suelo se llenan con el vecino más

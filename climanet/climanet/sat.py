@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Evaluación de umbrales para un Sistema de Alerta Temprana (SAT). NO es un SAT operativo completo:
 no adquiere datos en continuo, no vigila telemetría ni incluye pronóstico validado ni umbrales locales aprobados.
 

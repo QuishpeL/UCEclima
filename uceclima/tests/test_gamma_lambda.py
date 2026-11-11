@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Gamma · el λ (Ia/S) calibrado en hidro viaja con el CN a la corrida 2D (antes la 2D usaba siempre λ 0,20).
 Caso real que lo destapó: Chalpi (EPMAPS), CN 55 + λ 0,05 calibrados, IDF Tr100 3 h = 35,6 mm → con λ 0,20 la 2D daba escorrentía 0.
 Ejecutar: python -m uceclima.tests.test_gamma_lambda  (desde UCEclima)"""

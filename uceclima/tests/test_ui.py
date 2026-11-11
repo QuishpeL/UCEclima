@@ -1,4 +1,4 @@
-﻿# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+﻿# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Pruebas de la interfaz a nivel de API (servidor real en un puerto efímero, proceso de cálculo real, caso sintético pequeño).
 Ejecutar: python -m uceclima.tests.test_ui  (desde MILAGRO)"""
 import json, shutil, sys, tempfile, threading, time, traceback, urllib.request, urllib.error

@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Agentes de VS Code: Copilot (.vscode/mcp.json, clave «servers») y Claude Code (.mcp.json, clave «mcpServers»), ambos con el servidor MCP
 `uceclima` (UCEclima.exe --mcp). Se escriben también AGENTS.md y CLAUDE.md (mismo contenido) y la autorización del servidor del proyecto para
 Claude Code (.claude/settings.local.json · enabledMcpjsonServers). Antes de reescribir un archivo distinto se deja un .bak. No se guardan credenciales."""

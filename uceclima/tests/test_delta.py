@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Delta · D1 recesión k en el barrido, D2 paso horario, D3 humedad antecedente, D4 control de lluvia, D5 benchmark y D6 (G5, G8, G10, G11, G22).
 Respuesta conocida, sin red. Ejecutar: python -m uceclima.tests.test_delta  (desde UCEclima)"""
 import json, shutil, sys, tempfile, traceback

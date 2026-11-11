@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Proyecto nuevo desde un sitio (lon, lat): el programa crea el proyecto, lanza las descargas (MDT, CHIRPS, GEOGLOWS, opcional CELEC) y al terminar registra el MDT.
 La persona solo necesita una cuenta de Earth Engine autorizada. Nada sobrescribe: cada proyecto y cada descarga van en carpetas nuevas."""
 import json, os, re, subprocess, sys

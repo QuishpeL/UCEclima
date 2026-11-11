@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Modelo de proyecto de UCEclima (interfaz): abrir, validar con esquema, guardar sin sobrescribir y verificar entradas.
 Separa la interfaz del cálculo: aquí solo se leen/validan archivos; la simulación la hace el núcleo CLIMANET en un proceso aparte."""
 import hashlib, json, math, time

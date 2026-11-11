@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Servidor MCP (Model Context Protocol, stdio) de UCEclima: permite manejar el programa desde una IA de escritorio (Claude Desktop), Claude Code / VS Code o cualquier cliente MCP.
 Es un puente delgado: cada herramienta llama a la API local de UCEclima (127.0.0.1) con la clave de ~/.uceclima/api_key.txt. No guarda credenciales, no abre puertos y aplica las mismas reglas que la API
 (CMIP6 bajo decisión del usuario, una corrida por vez, nada se sobrescribe). Sin dependencias externas: JSON-RPC 2.0 por stdin/stdout.

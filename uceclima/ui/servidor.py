@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Servidor local de la interfaz de UCEclima (solo 127.0.0.1). Biblioteca estándar: sin framework adicional.
 La interfaz solo lee/valida y lanza procesos del núcleo; no contiene ecuaciones. Todas las acciones que cambian algo (POST) exigen el token de sesión."""
 import collections, json, mimetypes, os, secrets, subprocess, sys, threading, time, traceback
@@ -226,8 +226,32 @@ MODULOS = [
 ]
 
 
+def _sin_nan(o):
+    """Lambda 9.2: NaN e infinito no son JSON válido (el navegador rechaza toda la respuesta: el panel Hidrología se rompía en corridas con cuencas externas o CMIP6).
+    Se envían como null (vacío): no se inventa ningún valor."""
+    import math
+    if isinstance(o, float):
+        return o if math.isfinite(o) else None
+    if isinstance(o, dict):
+        return {k: _sin_nan(v) for k, v in o.items()}
+    if isinstance(o, (list, tuple)):
+        return [_sin_nan(v) for v in o]
+    try:
+        import numpy as _np
+        if isinstance(o, _np.floating):
+            return float(o) if _np.isfinite(o) else None
+        if isinstance(o, _np.ndarray):
+            return _sin_nan(o.tolist())
+    except ImportError:
+        pass
+    return o
+
+
 def _json(handler, obj, code=200):
-    cuerpo = json.dumps(obj, ensure_ascii=False, default=str).encode("utf-8")
+    try:
+        cuerpo = json.dumps(obj, ensure_ascii=False, default=str, allow_nan=False).encode("utf-8")
+    except ValueError:                                                         # hay NaN o infinito en algún lugar
+        cuerpo = json.dumps(_sin_nan(obj), ensure_ascii=False, default=str, allow_nan=False).encode("utf-8")
     handler.send_response(code); handler.send_header("Content-Type", "application/json; charset=utf-8"); handler.send_header("Content-Length", str(len(cuerpo)))
     handler.send_header("Cache-Control", "no-store"); handler.end_headers(); handler.wfile.write(cuerpo)
 
@@ -293,6 +317,30 @@ def api_get(h, ruta, q):
         return _json(h, {"evento_observado": cfg_f.get("evento_observado"), "entradas_hidrograma": cfg_f.get("entradas_hidrograma") or [], "sim_horas": cfg_f.get("sim_horas"), "aoi": cfg_f.get("aoi"),
                          "cuencas_externas": cfg_f.get("cuencas_externas") or [], "cuencas": sorted(x.name for x in (Path(E.carpeta) / "cuenca").glob("*") if (x / "cuenca.gpkg").exists()),
                          "estaciones": [{"id": r["id"], "nombre": r.get("nombre"), "zona": (r.get("zona_horaria_origen") or "")} for r in EST.listar(E.carpeta)]})
+    if ruta == "/api/corrida/externas":                                       # Lambda 9.2: cuencas externas automáticas y entradas GEOGLOWS (estado para la pantalla)
+        if not E.datos: return _json(h, {"error": "Abre un proyecto."}, 400)
+        from .. import cuenca as CU_
+        _, cfg_x = E.cfg(); aoi_x = cfg_x.get("aoi") or []; centro = None
+        if len(aoi_x) == 4 and E.datos.get("crs"):
+            from pyproj import Transformer
+            lo_, la_ = Transformer.from_crs(E.datos["crs"], "EPSG:4326", always_xy=True).transform((aoi_x[0] + aoi_x[1]) / 2, (aoi_x[2] + aoi_x[3]) / 2); centro = [round(lo_, 5), round(la_, 5)]
+        raiz_x = Path(E.carpeta) / "datos_descargados"
+        def _ultimos(prefijo, archivo, n=3):
+            out_ = []
+            for d_ in sorted(raiz_x.glob(prefijo + "_2*"), reverse=True):
+                est_ = d_ / "estado.json"
+                if est_.exists() and json.loads(est_.read_text(encoding="utf-8")).get("estado") == "completado" and (d_ / archivo).exists():
+                    out_.append((d_.name, json.loads((d_ / archivo).read_text(encoding="utf-8"))))
+                if len(out_) >= n: break
+            return out_
+        mdt_x = CU_.ultima_descarga(E.carpeta, "mdt_cuenca", ".tif")
+        det = [{"id": i_, "creado": p_.get("creado"), "area_min_km2": p_.get("area_min_km2"), "area_max_km2": p_.get("area_max_km2"), "cuencas": p_.get("cuencas"), "avisos": p_.get("avisos"),
+                "metodo": p_.get("metodo"), "aportes_laterales": p_.get("aportes_laterales")} for i_, p_ in _ultimos("externas", "propuesta.json")]
+        ana = [{"id": i_, "entradas": [{k_: x_.get(k_) for k_ in ("nombre", "xy", "lonlat", "river_id", "origen_tramo", "candidatos", "tabla_tr_m3s", "caudal_medio_m3s", "inicio", "fin")} | {"n_anios": x_["gumbel"]["n_anios"]} for x_ in p_["entradas"]]}
+               for i_, p_ in _ultimos("geoglows_entrada", "analisis_geoglows.json")]
+        return _json(h, {"aoi": aoi_x, "centro_lonlat": centro, "mdt_amplio": mdt_x.name if mdt_x else None, "detecciones": det, "analisis_geoglows": ana,
+                         "cuencas_externas": cfg_x.get("cuencas_externas") or [], "exigir_entrada_en_cauce": cfg_x.get("exigir_entrada_en_cauce", True),
+                         "entradas_geoglows": [{k_: e_.get(k_) for k_ in ("nombre", "xy", "river_id", "tabla_tr_m3s", "fuente")} for e_ in cfg_x.get("entradas_geoglows") or []]})
     if ruta == "/api/estaciones/serie":
         try:
             if not E.datos: return _json(h, {"error": "Abre un proyecto."}, 400)
@@ -434,6 +482,15 @@ def api_get(h, ruta, q):
             if not E.datos: return _json(h, {"error": "Abre un proyecto."}, 400)
             return _json(h, visor_api.fotos(E, (q.get("id") or [""])[0]))
         except (ValueError, OSError, KeyError) as e:
+            return _json(h, {"error": str(e)[:300]}, 400)
+    if ruta == "/api/particulas/datos":                                        # Lambda 9.2 · módulo 13: visor de partículas «lluvia a caudal»
+        from .. import particulas as PART
+        run = (q.get("id") or [""])[0]
+        try:
+            if not E.datos or not E.gestor: return _json(h, {"error": "Abre un proyecto."}, 400)
+            if not run or "/" in run or "\\" in run or ".." in run or not (E.gestor.base / run).is_dir(): return _json(h, {"error": "No existe esa corrida en el proyecto abierto."}, 404)
+            return _json(h, PART.datos(E.gestor.base / run))
+        except (PART.ParticulasError, OSError, ValueError, KeyError) as e:
             return _json(h, {"error": str(e)[:300]}, 400)
     if ruta == "/api/corrida/hietograma":
         run = (q.get("id") or [""])[0]
@@ -661,7 +718,7 @@ RUTA_ACTIVIDAD = {
     "/api/proyecto/abrir": ("proyecto", "Abrió un proyecto"), "/api/proyecto/demo": ("proyecto", "Abrió un proyecto de demostración"), "/api/proyecto/guardar_como": ("proyecto", "Guardó una copia del proyecto"),
     "/api/sitio/nuevo": ("gee", "Creó un proyecto nuevo desde un sitio y lanzó las descargas"), "/api/descargas/iniciar": ("gee", "Lanzó una descarga"), "/api/gee/probar": ("gee", "Probó la conexión con Earth Engine"),
     "/api/eventos/seleccionar": ("lluvia", "Seleccionó eventos con lluvia y caudal"), "/api/estaciones/importar": ("lluvia", "Importó una estación"), "/api/estaciones/vista_previa": ("lluvia", "Revisó un CSV de lluvia"),
-    "/api/proyecto/evento": ("lluvia", "Declaró un evento observado como forzamiento"), "/api/terreno/filtrar_picos": ("terreno", "Aplicó el filtro declarado de picos al terreno"), "/api/terreno/quemar_rios": ("terreno", "Grabó los ríos HydroSHEDS en el terreno (profundidad declarada)"), "/api/corrida/cuencas_externas": ("corrida", "Declaró cuencas externas para tormentas de diseño"), "/api/corrida/entradas": ("corrida", "Declaró hidrogramas de entrada en el borde del dominio"), "/api/terreno/inspeccionar": ("terreno", "Inspeccionó un MDT"), "/api/terreno/registrar": ("terreno", "Registró un MDT"),
+    "/api/proyecto/evento": ("lluvia", "Declaró un evento observado como forzamiento"), "/api/terreno/filtrar_picos": ("terreno", "Aplicó el filtro declarado de picos al terreno"), "/api/terreno/quemar_rios": ("terreno", "Grabó los ríos HydroSHEDS en el terreno (profundidad declarada)"), "/api/corrida/cuencas_externas": ("corrida", "Declaró cuencas externas para tormentas de diseño"), "/api/corrida/entradas": ("corrida", "Declaró hidrogramas de entrada en el borde del dominio"), "/api/corrida/externas_registrar": ("corrida", "Registró cuencas externas detectadas automáticamente"), "/api/corrida/entradas_geoglows": ("corrida", "Declaró entradas GEOGLOWS (río grande sin datos)"), "/api/terreno/inspeccionar": ("terreno", "Inspeccionó un MDT"), "/api/terreno/registrar": ("terreno", "Registró un MDT"),
     "/api/prep/escanear": ("preparacion", "Escaneó una carpeta de datos crudos"), "/api/prep/precipitacion": ("preparacion", "Revisó un archivo de lluvia"), "/api/prep/inventario": ("preparacion", "Revisó un inventario de eventos"),
     "/api/prep/contrastar": ("preparacion", "Contrastó lluvia con el inventario"), "/api/prep/ordenar": ("preparacion", "Ordenó los datos en una carpeta nueva"), "/api/prep/registrar_estacion": ("preparacion", "Registró una estación en el proyecto"),
     "/api/cmip6/asumir_baseline": ("cmip6", "Registró la decisión: línea base asumida"), "/api/bd/sincronizar": ("cmip6", "Sincronizó la base de datos del proyecto"), "/api/bd/consulta": ("cmip6", "Consultó la base de datos"), "/api/cmip6/evaluar": ("cmip6", "Evaluó los modelos CMIP6 (sesgo, RMSE, QQM)"), "/api/cmip6/factores": ("cmip6", "Calculó factores de cambio (QDM)"), "/api/verificar": ("corrida", "Verificó las entradas"), "/api/corrida/iniciar": ("corrida", "Lanzó una corrida"), "/api/corrida/cancelar": ("corrida", "Canceló la corrida"),
@@ -811,6 +868,41 @@ def api_post(h, ruta, cuerpo):
             else: cfg.pop("cuencas_externas", None)
             cp.write_text(json.dumps(cfg, indent=2, ensure_ascii=False), encoding="utf-8")
             return _json(h, {"cuencas_externas": nuevas, "nota": "Solo para tormentas de diseño: cada cuenca recibe la misma IDF y Tr que la 2D; se usa solo su área fuera del dominio. No calibrado."})
+        except (ValueError, KeyError, OSError) as e:
+            return _json(h, {"error": str(e)[:400]}, 400)
+    if ruta in ("/api/corrida/externas_registrar", "/api/corrida/entradas_geoglows"):   # Lambda 9.2: lo detectado/analizado entra al proyecto SOLO cuando la persona lo decide
+        try:
+            if not E.datos: return _json(h, {"error": "Abre un proyecto."}, 400)
+            if E.gestor and E.gestor.activa(): return _json(h, {"error": "Hay una corrida en curso; espera a que termine."}, 409)
+            from .. import externas_auto as XA
+            cp = Path(E.carpeta) / E.datos["config_climanet"]; cfg = json.loads(cp.read_text(encoding="utf-8"))
+            (cp.parent / f"{cp.name}.{datetime.now():%Y%m%d_%H%M%S}.bak").write_text(json.dumps(cfg, indent=2, ensure_ascii=False), encoding="utf-8")
+            if ruta == "/api/corrida/externas_registrar":
+                if cuerpo.get("quitar"):
+                    cfg.pop("cuencas_externas", None); nota_ = "Cuencas externas quitadas de la corrida (las carpetas cuenca/ no se borran)."; lista = []
+                else:
+                    permitir = bool(cuerpo.get("permitir_fuera_de_cauce"))
+                    lista_ = XA.registrar_externas(E.carpeta, E.datos, cuerpo.get("deteccion"), cuerpo.get("ids") or [], permitir)
+                    lista = [{"nombre": c_["nombre"], "shp": f"cuenca/{c_['cuenca']}/cuenca.gpkg", "cn": float(c_["cn"]), "lag_h": float(c_["lag_h"]), "prf": 484.0,
+                              "entrada_xy": [float(v) for v in c_["entrada_xy"]], "fuente": c_["fuente"]} for c_ in lista_]
+                    cfg["cuencas_externas"] = lista
+                    if permitir:
+                        cfg["exigir_entrada_en_cauce"] = False
+                        cfg["exigir_entrada_en_cauce_nota"] = f"Desactivado por decisión de la persona ({datetime.now():%Y-%m-%d %H:%M}) al registrar la detección {cuerpo.get('deteccion')}: alguna entrada no pasa la comprobación de cauce. Resultado en esas entradas provisional; no calibrado."
+                    nota_ = "Solo para tormentas de diseño: cada cuenca recibe la misma IDF y Tr que la 2D; se usa solo su área fuera del dominio. No calibrado."
+                cp.write_text(json.dumps(cfg, indent=2, ensure_ascii=False), encoding="utf-8")
+                return _json(h, {"cuencas_externas": lista, "exigir_entrada_en_cauce": cfg.get("exigir_entrada_en_cauce", True), "nota": nota_})
+            if cuerpo.get("quitar"):
+                cfg.pop("entradas_geoglows", None); lista = []
+            else:
+                lista = XA.registrar_geoglows(E.carpeta, cuerpo.get("analisis"), cuerpo.get("nombres"))
+                aoi = cfg.get("aoi") or []
+                for e_ in lista:
+                    if len(aoi) == 4 and not (aoi[0] <= e_["xy"][0] <= aoi[1] and aoi[2] <= e_["xy"][1] <= aoi[3]): raise ValueError(f"La entrada {e_['nombre']} queda fuera del área del modelo.")
+                cfg["entradas_geoglows"] = lista
+            cp.write_text(json.dumps(cfg, indent=2, ensure_ascii=False), encoding="utf-8")
+            return _json(h, {"entradas_geoglows": [{k_: e_[k_] for k_ in ("nombre", "xy", "river_id", "tabla_tr_m3s", "fuente")} for e_ in lista],
+                             "nota": "El pico se calcula en cada corrida con su Tr (Gumbel de los máximos horarios anuales de GEOGLOWS) y coincide con el pico de la tormenta local. Referencia externa, no observación. No calibrado."})
         except (ValueError, KeyError, OSError) as e:
             return _json(h, {"error": str(e)[:400]}, 400)
     if ruta == "/api/corrida/entradas":                                        # G17: hidrogramas de entrada (Epsilon E1.1) declarados por la persona

@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Compuerta de línea base: el cambio climático NO se aplica hasta que la condición existente esté bien modelada.
 
 Verificaciones automáticas sobre la corrida histórica (resumen.json) + validación contra evidencia observada.

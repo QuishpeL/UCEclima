@@ -1,4 +1,4 @@
-# UCEclima Lambda 9.1.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · GPL-3.0-or-later (ver LICENSE)
+# UCEclima Lambda 9.2.0 · © 2026 Diego Quishpe Landeta, Teresa Palacios y María Eugenia Ávila-Salem · CC BY-NC 4.0 (ver LICENSE)
 """Flujo nuevo de UCEclima: premódulo (leer Excel/CSV de lluvia y caudal → memoria → gráficos), módulo 1 (crear proyecto con las series), módulo 2 (conexión GEE sin red: flujo de autorización y
 verificación) y módulo 3 (gráficos CHIRPS dentro de la carpeta). Datos sintéticos de respuesta conocida; sin red. Ejecutar: python -m uceclima.tests.test_flujo_nuevo"""
 import json, shutil, sys, tempfile, threading, traceback, urllib.request, urllib.error
