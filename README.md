@@ -1,5 +1,9 @@
 # UCEclima 9.1.0 "Lambda"
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24122769.svg)](https://doi.org/10.5281/zenodo.24122769)
+
+Archived release (installer, source code and manual): https://doi.org/10.5281/zenodo.24122769
+
 Free desktop application for Windows that links, in one traceable project, gauge screening, event-based hydrological
 calibration (SCS-CN + unit hydrograph, KGE/NSE), a mass-conservative 2D local-inertial flood model and CMIP6 scenarios
 (NEX-GDDP-CMIP6, SSP5-8.5: bias correction, ClimWIP weights, change factors per return period and time of emergence).

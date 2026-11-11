@@ -4,6 +4,8 @@ title: "UCEclima"
 version: "9.1.0"
 date-released: "2026-11-05"
 license: "CC-BY-NC-4.0"
+doi: "10.5281/zenodo.24122769"
+repository-code: "https://github.com/QuishpeL/UCEclima"
 abstract: "Desktop workflow linking gauge screening, event calibration, 2D flood modelling and CMIP6 time of emergence."
 keywords: [flood modelling, CMIP6, time of emergence, curve number, 2D hydraulics, Ecuador]
 authors:
