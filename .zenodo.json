@@ -12,11 +12,18 @@
     },
     {
       "name": "Palacios, Teresa",
-      "affiliation": "Doctorado en Gestión Sustentable del Agua y Riego, Universidad Central del Ecuador"
+      "affiliation": "Doctorado en Gestión Sustentable del Agua y Riego, Universidad Central del Ecuador",
+      "orcid": "0000-0001-6223-0141"
     },
     {
       "name": "Ávila-Salem, María Eugenia",
-      "affiliation": "Doctorado en Gestión Sustentable del Agua y Riego, Universidad Central del Ecuador"
+      "affiliation": "Doctorado en Gestión Sustentable del Agua y Riego, Universidad Central del Ecuador",
+      "orcid": "0000-0001-8511-4231"
+    },
+    {
+      "name": "Montero, Carolina",
+      "affiliation": "Doctorado en Gestión Sustentable del Agua y Riego, Universidad Central del Ecuador",
+      "orcid": "0000-0002-3683-8628"
     }
   ],
   "description": "UCEclima links gauge screening, event-based hydrological calibration, a mass-conservative 2D local-inertial flood model and CMIP6 scenarios (NEX-GDDP-CMIP6, SSP5-8.5) with time of emergence in one traceable desktop project for Windows. Software described in a manuscript submitted to Environmental Modelling & Software (ENVSOFT-D-26-03951).",
