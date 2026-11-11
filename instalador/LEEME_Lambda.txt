@@ -1,0 +1,38 @@
+UCEclima Lambda (9.1) · hidrología e hidráulica, de Ecuador al mundo con CHIRPS · versión de uso
+Autor: Diego Quishpe Landeta · Coautoras: Teresa Palacios y María Eugenia Ávila-Salem
+Doctorado en Gestión Sustentable del Agua y Riego · Universidad Central del Ecuador
+=====================================================
+
+LAMBDA 9.1 ES LA VERSIÓN DE USO (se instala aparte; Eta 9.0, Zeta 8.0 y Omega 7.0 no se tocan)
+Es Eta 9.0 con cuatro cambios. Todo lo demás —incluido CMIP6— funciona igual que en Eta.
+
+  L1  MÓDULO 7b · PRONÓSTICO DE LLUVIA (GFS · ECMWF · NASA)
+      - Consulta la lluvia pronosticada por GFS (NOAA, EE. UU.) y ECMWF IFS (Europa), 0,25°, a hasta 10 días, y la lluvia ya caída
+        estimada por NASA GPM IMERG (satélite, por Earth Engine). Tabla diaria lado a lado y gráfico horario.
+      - Se usa como forzamiento de la corrida 2D: el resultado, los mapas y el informe salen rotulados «PRONÓSTICO» (o
+        «ESTIMACIÓN SATELITAL»), nunca «evento observado». Si el pronóstico trae menos de 1 mm no hay nada que modelar y lo dice.
+      - Caudal pronosticado de la sierra con GEOGLOWS v2 Forecast, como CSV listo para hidrograma de entrada (orden de magnitud).
+      - GFS y ECMWF vienen de Open-Meteo (sin claves; CC BY 4.0). Un pronóstico a ~25 km falla a menudo en la ubicación y la
+        intensidad de los aguaceros, y en islas y montañas subestima. Es investigación, NO una alerta oficial (INAMHI / SNGR).
+  L2  BOTÓN «CALADO, VELOCIDAD Y PELIGRO» (módulos 8 y 11)
+      - Para una corrida (o todas): calado máximo, velocidad máxima y peligro (calado × velocidad, clases de Australian
+        Rainfall and Runoff 2019), cada uno en GeoTIFF, shapefile por clases (UTM y WGS84, más GeoPackage) y PNG; una lámina de
+        3 paneles con vías y edificios de OSM; resumen en km² y edificios por clase. El mar se excluye. Se puede acercar a una zona.
+      - Usa el terreno que usó esa corrida (no el actual del proyecto). Carpeta nueva en productos\13_peligro\.
+  L3  SIN LA FRANJA ROJA QUE SALTABA SOLA
+      - «UCEclima se desconectó» solo aparece cuando la conexión de verdad se cortó (6 latidos fallidos y más de 60 s sin respuesta,
+        confirmados con una segunda sonda; no cuenta mientras la pestaña está dormida). Y se puede cerrar con la ×.
+  L4  CHIRPS en lugares con meses muy secos (Galápagos): los gráficos ya no fallan («yerr must not contain negative values»).
+
+MÓDULOS
+  0 Preparación de datos · 1 Proyecto · 2 Datos / GEE · 3 CHIRPS · 4 IDF (X) · 5 Terreno · 6 hidro · 7 land · Corrida 2D
+  7b Pronóstico · 8 Evaluación · 8b Mapa 2D X frente a Y · 8c Visor 3D · 9 CMIP6 · 10 WRF · 11 Resultados y entregas · 12 Validación de campo.
+
+PROYECTOS
+  Documentos\UCEclima_proyectos\<nombre>. Desinstalar no los borra. Los proyectos de Eta, Zeta y Omega se abren en Lambda.
+
+SI WINDOWS BLOQUEA EL PROGRAMA (Smart App Control)
+  El programa no está firmado. PC personal: Seguridad de Windows › Control de aplicaciones y navegador ›
+  Smart App Control › Desactivado. PC institucional: pedir a TI que permita la carpeta de UCEclima.
+
+Resultados sin calibrar ni validar salvo que el proyecto lo declare: no son predicciones.

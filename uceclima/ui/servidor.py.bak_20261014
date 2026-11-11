@@ -1,0 +1,774 @@
+"""Servidor local de la interfaz de UCEclima (solo 127.0.0.1). Biblioteca estándar: sin framework adicional.
+La interfaz solo lee/valida y lanza procesos del núcleo; no contiene ecuaciones. Todas las acciones que cambian algo (POST) exigen el token de sesión."""
+import collections, json, mimetypes, os, secrets, subprocess, sys, threading, time, traceback
+from datetime import datetime
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+from urllib.parse import parse_qs, urlparse
+
+import uceclima
+from . import proyecto as P, demo, mapas, hipso_api, visor_api, api_abierta, evento_api, prep_api, sitio_api, ia_config
+from .. import entregas as ENT, idf_x as IDFX, premodulo as PRE, gee_conexion as GEEC, hidrologia_api as HID, basedatos as BD, cmip6_descarga as CMD, cmip6_sesgo as CSB, escenarios_idf as ESC, series_api as SER, analisis_eventos as AEV, estaciones as EST, terreno_import as TIMP, preparacion as PREP, descargas as DESC
+from .trabajos import GestorTrabajos
+
+AQUI = Path(__file__).resolve().parent
+STATIC = AQUI / "static"
+RAIZ = AQUI.parents[1]                         # carpeta MILAGRO
+NUCLEO = RAIZ / "climanet"
+
+
+class Estado:
+    def __init__(self):
+        self.token = secrets.token_urlsafe(24)
+        self.clave_api = api_abierta.cargar_clave()
+        self.descargas = DESC.GestorDescargas()
+        self.actividad = collections.deque(maxlen=400); self.seq = 0
+        self.descargas.hook = self._hook_descarga; self._ultimo_pct = {}
+        self.puerto = None
+        self.datos = None; self.carpeta = None; self.gestor = None
+        self.lock = threading.Lock()
+
+    def abrir(self, ruta):
+        datos, carpeta = P.abrir(ruta)
+        self.datos, self.carpeta = datos, carpeta
+        self.gestor = GestorTrabajos(carpeta / datos["carpeta_resultados"])
+        return datos
+
+    def cfg(self):
+        return P.config_climanet(self.datos, self.carpeta)
+
+    def log(self, titulo, detalle="", modulo=None, nivel="info", origen="sistema", ok=True):
+        """Bitácora en vivo que la pantalla muestra (qué hace la IA/API, las descargas y las corridas). No guarda datos sensibles."""
+        with self.lock:
+            self.seq += 1
+            self.actividad.append({"n": self.seq, "t": datetime.now().strftime("%H:%M:%S"), "titulo": str(titulo)[:160], "detalle": str(detalle)[:300], "modulo": modulo, "nivel": nivel, "origen": origen, "ok": ok})
+
+    def _hook_descarga(self, did, estado, mensaje, progreso):
+        pct = int((progreso or 0) * 10) * 10
+        if estado == "en_curso" and self._ultimo_pct.get(did) == pct and pct not in (0,):
+            return
+        self._ultimo_pct[did] = pct
+        self.log({"en_curso": "Descargando datos", "completado": "Descarga completada", "fallido": "Descarga fallida"}.get(estado, "Descarga"), f"{mensaje} · {int((progreso or 0) * 100)} %", "gee",
+                 "error" if estado == "fallido" else ("ok" if estado == "completado" else "info"), "descargas", estado != "fallido")
+
+
+ESTADO = Estado()
+
+MODULOS = [
+    {"id": "preparacion", "nombre": "0 · Preparación de datos", "estado": "implementado", "resumen": "Carga Excel/CSV de precipitación y caudal, los guarda en memoria y los grafica aquí mismo (series, tendencias, climatología, curva de duración)."},
+    {"id": "proyecto", "nombre": "1 · Proyecto", "estado": "implementado", "resumen": "Crear la carpeta del proyecto (con las series cargadas) o abrir uno existente. Nada se sobrescribe."},
+    {"id": "gee", "nombre": "2 · Datos / GEE", "estado": "implementado", "resumen": "Tu proyecto de Google Cloud, autorización con tu cuenta e inicialización verificada de Earth Engine; descargas del proyecto (MDT, CN/Manning, GEOGLOWS, CELEC)."},
+    {"id": "chirps", "nombre": "3 · CHIRPS", "estado": "implementado", "resumen": "Descarga las series CHIRPS del sitio, genera gráficos y tendencias y lo guarda todo en la carpeta del proyecto."},
+    {"id": "idf", "nombre": "4 · IDF INAMHI (X)", "estado": "implementado", "resumen": "La lluvia de diseño de las condiciones existentes (X): ecuaciones, cuadros y curvas del libro del INAMHI para el sitio; eliges la pluviográfica y el modo y fijas la IDF."},
+    {"id": "terreno", "nombre": "5 · Terreno", "estado": "parcial", "resumen": "Verificación de CRS, resolución y cobertura + vista previa; comprueba si un MDT de dron coincide con la zona de trabajo y con el terreno de Earth Engine."},
+    {"id": "visor", "nombre": "★ Visor 3D de resultados", "estado": "parcial", "resumen": "Terreno y capas reales de una corrida (calado máximo, velocidad máxima, duración) en 3D isométrico con control de capas, exageración vertical y capas fantasma de escenarios."},
+    {"id": "maquetas", "nombre": "★ Maquetas isométricas", "estado": "parcial", "resumen": "Figuras isométricas interactivas que explican un concepto con un objeto físico. Hoy: almacenamiento del terreno."},
+    {"id": "cuencas", "nombre": "6 · hidro · Cuencas / canales", "estado": "parcial", "resumen": "Lectura de los diagnósticos ya generados; editar entradas, breaklines y estructuras está pendiente."},
+    {"id": "corrida", "nombre": "7 · land · Corrida 2D", "estado": "implementado", "resumen": "Comprobación previa, una tarea por vez, progreso, cancelar y registro persistente."},
+    {"id": "evaluacion", "nombre": "8 · land · Evaluación", "estado": "parcial", "resumen": "Volumen m³/%, Courant, pasos y mapa. Caudal/nivel por sección y comparación con referencia: pendiente."},
+    {"id": "hidrologia", "nombre": "9 · hidro · Hidrología y calibración", "estado": "parcial", "resumen": "Hietograma, hidrogramas observado/simulado, volúmenes acumulados y balance de las corridas del proyecto. Sin observaciones: «simulación sin calibrar»."},
+    {"id": "cmip6", "nombre": "10 · CMIP6", "estado": "bloqueado", "resumen": "Bloqueado hasta calibrar y validar la línea base (o hasta que la persona usuaria registre la decisión de asumirla)."},
+    {"id": "entregas", "nombre": "11 · Resultados y entregas", "estado": "implementado", "resumen": "Todo en shapes, CSV/Excel, mapas y figuras; y la carpeta de insumos para los siguientes programas: BCA FEMA y El Niño / La Niña. Incluye el visor VOTEX 4D (maqueta)."},
+]
+
+
+def _json(handler, obj, code=200):
+    cuerpo = json.dumps(obj, ensure_ascii=False, default=str).encode("utf-8")
+    handler.send_response(code); handler.send_header("Content-Type", "application/json; charset=utf-8"); handler.send_header("Content-Length", str(len(cuerpo)))
+    handler.send_header("Cache-Control", "no-store"); handler.end_headers(); handler.wfile.write(cuerpo)
+
+
+def _archivo(handler, path, tipo=None):
+    path = Path(path)
+    if not path.is_file():
+        return _json(handler, {"error": "No existe el archivo solicitado."}, 404)
+    b = path.read_bytes()
+    fijos = {".mjs": "text/javascript; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".html": "text/html; charset=utf-8", ".png": "image/png", ".jpg": "image/jpeg"}
+    handler.send_response(200); handler.send_header("Content-Type", tipo or fijos.get(path.suffix.lower()) or mimetypes.guess_type(str(path))[0] or "application/octet-stream")
+    handler.send_header("Content-Length", str(len(b))); handler.send_header("Cache-Control", "no-store"); handler.end_headers(); handler.wfile.write(b)
+
+
+def _texto(handler, texto, tipo):
+    b = texto.encode("utf-8")
+    handler.send_response(200); handler.send_header("Content-Type", tipo); handler.send_header("Content-Length", str(len(b)))
+    handler.send_header("Cache-Control", "no-store"); handler.end_headers(); handler.wfile.write(b)
+
+
+def _dialogo(tipo):
+    """Diálogo nativo de Windows en un proceso aparte (Tk exige el hilo principal). Devuelve la ruta o ''."""
+    cod = ("import tkinter as tk\nfrom tkinter import filedialog as f\nr=tk.Tk();r.withdraw();r.attributes('-topmost',True)\n"
+           + ("print(f.askdirectory(title='Elegir carpeta'))" if tipo == "carpeta" else
+              "import json\nprint(json.dumps(list(f.askopenfilenames(title='Elegir archivos de datos',filetypes=[('Excel y CSV','*.xlsx *.xlsm *.xls *.csv *.txt'),('Todos','*.*')]))))" if tipo == "datos" else
+              "print(f.askopenfilename(title='Elegir archivo',filetypes=[('Proyecto UCEclima','*.json'),('Todos','*.*')]))"))
+    cmd = [sys.executable, "--dialogo", tipo] if getattr(sys, "frozen", False) else [sys.executable, "-c", cod]
+    r = subprocess.run(cmd, capture_output=True, text=True, creationflags=0x08000000 if os.name == "nt" else 0)
+    if tipo == "datos":
+        try: return [x.replace("/", os.sep) for x in json.loads(r.stdout.strip() or "[]")]
+        except Exception: return []
+    return r.stdout.strip().replace("/", os.sep)
+
+
+# ------------------------------------------------------------------------------------------------ rutas
+def api_get(h, ruta, q):
+    E = ESTADO
+    if ruta == "/api/openapi.json":
+        return _json(h, api_abierta.openapi(uceclima.__version__))
+    if ruta == "/api/docs":
+        return _texto(h, api_abierta.docs_html(uceclima.__version__), "text/html; charset=utf-8")
+    if ruta == "/api/ia":
+        return _texto(h, api_abierta.GUIA_IA.format(puerto=ESTADO.puerto, archivo_clave=str(api_abierta.ARCHIVO_CLAVE)), "text/plain; charset=utf-8")
+    if ruta == "/api/descargas":
+        if not E.datos: return _json(h, {"descargas": [], "activa": False})
+        return _json(h, {"descargas": DESC.listar(E.carpeta), "activa": E.descargas.activa(), "fuentes": list(DESC.FUENTES)})
+    if ruta == "/api/proyecto/evento":
+        if not E.datos: return _json(h, {"error": "Abre un proyecto."}, 400)
+        return _json(h, {"evento": evento_api.actual(E)})
+    if ruta == "/api/estaciones":
+        if not E.datos: return _json(h, {"error": "Abre un proyecto."}, 400)
+        return _json(h, {"estaciones": EST.listar(E.carpeta), "nota": "Un evento de estación puede conducir la corrida (POST /api/proyecto/evento); el modelo sigue sin calibrar."})
+    if ruta == "/api/estaciones/serie":
+        try:
+            if not E.datos: return _json(h, {"error": "Abre un proyecto."}, 400)
+            d = EST.serie(E.carpeta, (q.get("id") or [""])[0], (q.get("inicio") or [None])[0], (q.get("fin") or [None])[0])
+            return _json(h, {"fecha": d["fecha"].dt.strftime("%Y-%m-%dT%H:%M:%SZ").tolist(), "lluvia_mm": [None if v != v else round(float(v), 3) for v in d["lluvia_mm"]]})
+        except EST.EstacionError as e:
+            return _json(h, {"error": str(e)}, 400)
+    if ruta == "/api/ia/config":
+        return _json(h, ia_config.estado((q.get("carpeta") or [None])[0]))
+    if ruta == "/api/ia/info":
+        return _json(h, {"url": f"http://127.0.0.1:{ESTADO.puerto}", "docs": "/api/docs", "openapi": "/api/openapi.json", "guia": "/api/ia", "archivo_clave": str(api_abierta.ARCHIVO_CLAVE)})
+    if ruta == "/api/cmip6/idf":
+        try:
+            if not E.datos: return _json(h, {"error": "Abre un proyecto."}, 400)
+            _, cfg = E.cfg(); defs, base = ESC.definiciones(E.carpeta, cfg, IDFX.estacion_proyecto(cfg, E.datos), int(cfg.get("storm_min", 180)))
+            idc = (q.get("id") or [""])[0]; d = next((z for z in defs if z["id"] == idc), None)
+            if not d or "factor_por_tr" not in d: return _json(h, {"error": "Escenario Y desconocido."}, 400)
+            import pandas as pd
+            adj = base.mul(pd.Series({int(k): v_ for k, v_ in d["factor_por_tr"].items()}), axis=0)
+            return _json(h, {"id": idc, "nombre": d["nombre"], "duraciones_min": [int(c) for c in base.columns], "tr": [int(i) for i in base.index], "idf_oficial": base.round(2).values.tolist(), "idf_ajustada": adj.round(2).values.tolist(),
+                             "factor_por_tr": d["factor_por_tr"], "nota": d["fuente"]})
+        except (ESC.EscenarioError, OSError, ValueError, KeyError) as e:
+            return _json(h, {"error": str(e)[:300]}, 400)
+    if ruta == "/api/bd/esquema":
+        try:
+            if not E.datos: return _json(h, {"error": "Abre un proyecto."}, 400)
+            return _json(h, {"archivo": str(BD.ruta(E.carpeta)), "existe": BD.ruta(E.carpeta).exists(), "tablas": BD.esquema(E.carpeta) if BD.ruta(E.carpeta).exists() else []})
+        except (BD.BDError, OSError) as e:
+            return _json(h, {"error": str(e)[:300]}, 400)
+    if ruta == "/api/cmip6/anual":
+        try:
+            if not E.datos: return _json(h, {"error": "Abre un proyecto."}, 400)
+            return _json(h, CSB.anual(E.carpeta))
+        except (CSB.SesgoError, BD.BDError, OSError, KeyError) as e:
+            return _json(h, {"error": str(e)[:300]}, 400)
+    if ruta == "/api/cmip6/resultados":
+        if not E.datos: return _json(h, {"error": "Abre un proyecto."}, 400)
+        b = Path(E.carpeta) / "registro" / "cmip6"; c = sorted(b.glob("analisis_*")) if b.exists() else []
+        if not c: return _json(h, {"analisis": None, "decision": CMD.decision(E.carpeta)})
+        d = c[-1]; out = {"analisis": d.name, "decision": CMD.decision(E.carpeta), "resumen": json.loads((d / "resumen_analisis.json").read_text(encoding="utf-8")), "graficas": json.loads((d / "graficas.json").read_text(encoding="utf-8"))}
+        import pandas as pd
+        rk = pd.read_csv(d / "metricas_modelos.csv"); sl = pd.read_csv(d / "seleccionados.csv")
+        rk["seleccionado"] = rk["modelo"].isin(sl["modelo"]).astype(int)
+        out["ranking"] = rk.replace({float("nan"): None}).to_dict("records")
+        if (d / "factores_cc.json").exists(): out["factores"] = json.loads((d / "factores_cc.json").read_text(encoding="utf-8"))
+        if (d / "verificacion_2015_2025.csv").exists(): out["verificacion"] = pd.read_csv(d / "verificacion_2015_2025.csv").replace({float("nan"): None}).to_dict("records")
+        return _json(h, out)
+    if ruta == "/api/prep/memoria":
+        return _json(h, PRE.memoria())
+    if ruta == "/api/prep/catalogo":
+        return _json(h, PRE.catalogo_series())
+    if ruta in ("/api/prep/lluvia", "/api/prep/caudal"):
+        try:
+            sid = (q.get("id") or [""])[0]
+            return _json(h, PRE.datos_lluvia(sid) if ruta.endswith("lluvia") else PRE.datos_caudal(sid))
+        except (PRE.PremoduloError, KeyError) as e: return _json(h, {"error": str(e)}, 400)
+    if ruta == "/api/proyecto/archivo":
+        if not E.datos: return _json(h, {"error": "Abre un proyecto."}, 400)
+        rel = (q.get("ruta") or [""])[0]; f = (E.carpeta / rel).resolve()
+        if E.carpeta.resolve() not in f.parents or f.suffix.lower() not in (".png", ".csv", ".json", ".jpg", ".svg"):
+            return _json(h, {"error": "Archivo no permitido."}, 403)
+        return _archivo(h, f)
+    if ruta == "/api/chirps/graficos":
+        if not E.datos: return _json(h, {"error": "Abre un proyecto."}, 400)
+        ds = sorted((E.carpeta / "datos_descargados").glob("chirps_*")) + sorted((E.carpeta / "datos_descargados").glob("sitio_*/chirps"))
+        ds = [d for d in ds if (d / "chirps_diario.csv").exists()]
+        if not ds: return _json(h, {"descarga": None, "graficos": [], "nota": "Aún no hay una descarga CHIRPS en este proyecto."})
+        d = max(ds, key=lambda x: (x / "chirps_diario.csv").stat().st_mtime); g = d / "graficos"
+        if not (g / "chirps_resumen.json").exists():                                                  # descarga anterior sin gráficos: se generan ahora, dentro de la misma carpeta
+            try:
+                from uceclima import chirps_salidas
+                chirps_salidas.generar(d)
+            except Exception as e:
+                return _json(h, {"error": "No se pudieron generar los gráficos: " + str(e)[:200]}, 400)
+        res = json.loads((g / "chirps_resumen.json").read_text(encoding="utf-8")) if (g / "chirps_resumen.json").exists() else {}
+        return _json(h, {"descarga": d.name, "carpeta": str(d.relative_to(E.carpeta)).replace("\\", "/"), "graficos": sorted(p.name for p in g.glob("*.png")), "tablas": sorted(p.name for p in g.glob("*.csv")), "resumen": res})
+    if ruta in ("/api/idf/x", "/api/idf/x/png"):
+        try:
+            if not E.datos: return _json(h, {"error": "Abre un proyecto."}, 400)
+            est = (q.get("estacion") or [None])[0]; dur = int((q.get("duracion") or [180])[0]); tr = int((q.get("tr") or [100])[0])
+            if not est:
+                _, cfg0 = E.cfg(); est = (cfg0.get("idf_x") or {}).get("estacion") or (cfg0.get("idf_inamhi") or {}).get("estacion")
+            res = IDFX.calcular(E.datos, est, dur, tr)
+            if ruta.endswith("/png"):
+                nombre = (q.get("nombre") or ["idf_curvas.png"])[0]
+                if nombre not in ("idf_curvas.png", "idf_modos_tr100.png", "tormenta_diseno.png"): return _json(h, {"error": "Gráfica desconocida."}, 400)
+                b = IDFX.png(res, nombre); h.send_response(200); h.send_header("Content-Type", "image/png"); h.send_header("Content-Length", str(len(b))); h.send_header("Cache-Control", "no-store"); h.end_headers(); h.wfile.write(b); return
+            _, cfg1 = E.cfg(); res["fijada"] = cfg1.get("idf_x"); return _json(h, res)
+        except (ValueError, KeyError, IndexError) as e: return _json(h, {"error": str(e)[:300]}, 400)
+    if ruta == "/api/entregas":
+        if not E.datos: return _json(h, {"error": "Abre un proyecto."}, 400)
+        return _json(h, {"entregas": ENT.listar(E.carpeta), "corridas": [{"id": c["id"], "escenario": c["escenario"], "tipo": c["tipo"]} for c in ENT.corridas(E.carpeta)], "programas": ENT.PROGRAMAS})
+    if ruta == "/api/gee/catalogo":
+        from uceclima import capas_gee
+        return _json(h, capas_gee.catalogo())
+    if ruta == "/api/gee/estado":
+        return _json(h, GEEC.estado())
+    if ruta == "/api/hidrologia/casos":
+        try: return _json(h, HID.casos(E.carpeta if E.datos else None))
+        except HID.HidroError as e: return _json(h, {"error": str(e)}, 400)
+    if ruta == "/api/hidrologia/serie":
+        try:
+            if not E.datos: return _json(h, {"error": "Abre un proyecto."}, 400)
+            idr = (q.get("id") or [""])[0]
+            return _json(h, HID.serie_corrida(E.carpeta, idr, HID.leer_observaciones(E.carpeta)[0]))
+        except (HID.HidroError, KeyError, FileNotFoundError, ValueError) as e: return _json(h, {"error": str(e)[:400]}, 400)
+    if ruta == "/api/escenarios/idf":
+        try:
+            if not E.datos: return _json(h, {"error": "Abre un proyecto."}, 400)
+            _, cfg = E.cfg()
+            defs, _b = ESC.definiciones(E.carpeta, cfg, (q.get("estacion") or [IDFX.estacion_proyecto(cfg, E.datos)])[0], int(cfg.get("storm_min", 180)))
+            return _json(h, {"escenarios": defs, "Tr": ESC.TR, "nota": "Todos son diseños históricos; reescalar es un factor único que conserva la forma de la IDF de la estación. Ninguno es cambio climático."})
+        except (ESC.EscenarioError, OSError, ValueError) as e:
+            return _json(h, {"error": str(e)[:300]}, 400)
+    if ruta == "/api/visor/capa":
+        try:
+            if not E.datos: return _json(h, {"error": "Abre un proyecto."}, 400)
+            return _json(h, visor_api.capa(E, (q.get("id") or [""])[0], (q.get("capa") or ["hmax"])[0]))
+        except (ValueError, OSError) as e:
+            return _json(h, {"error": str(e)[:300]}, 400)
+    if ruta == "/api/corrida/hietograma":
+        run = (q.get("id") or [""])[0]
+        f = next(iter((E.gestor.base / run).rglob("hietograma.csv")), None) if E.gestor and run else None
+        if not f: return _json(h, {"error": "No existe el hietograma de esa corrida."}, 404)
+        import pandas as pd
+        d = pd.read_csv(f); ent = json.loads((E.gestor.base / run / "entrada.json").read_text(encoding="utf-8")) if (E.gestor.base / run / "entrada.json").exists() else {}
+        return _json(h, {"id": run, "escenario": ent.get("escenario"), "inicio_s": d["inicio_s"].tolist(), "fin_s": d["fin_s"].tolist(), "lluvia_mm": d["lluvia_mm"].round(3).tolist()})
+    if ruta == "/api/actividad":
+        desde = int((q.get("desde") or ["0"])[0] or 0)
+        with E.lock:
+            ev = [e for e in E.actividad if e["n"] > desde]; ultimo = E.seq
+        return _json(h, {"eventos": ev, "ultimo": ultimo, "corrida_activa": bool(E.gestor and E.gestor.activa()), "descarga_activa": E.descargas.activa()})
+    if ruta.startswith("/api/series/"):
+        try:
+            if not E.datos: return _json(h, {"error": "Abre un proyecto."}, 400)
+            if ruta == "/api/series/catalogo": return _json(h, {"series": SER.catalogo(E.carpeta)})
+            sid = (q.get("id") or [""])[0]
+            if ruta == "/api/series/lluvia": return _json(h, SER.lluvia(E.carpeta, sid))
+            if ruta == "/api/series/caudal": return _json(h, SER.caudal(E.carpeta, sid))
+            if ruta == "/api/series/evento": return _json(h, SER.evento(E.carpeta, sid))
+            return _json(h, {"error": "Ruta de series no encontrada"}, 404)
+        except (SER.SerieError, KeyError, OSError, ValueError) as e:
+            return _json(h, {"error": str(e)[:300]}, 400)
+    if ruta == "/api/latido":
+        import time
+        _LATIDO[0] = time.time(); return _json(h, {"ok": True})
+    if ruta == "/api/estado":
+        corr = E.gestor.listar() if E.gestor else []
+        return _json(h, {"version": uceclima.__version__, "python": sys.version.split()[0], "proyecto": ({k: v for k, v in E.datos.items()} if E.datos else None),
+                         "recientes": P.recientes(), "carpeta_proyectos": str(sitio_api.RAIZ_PROYECTOS), "corrida_activa": bool(E.gestor and E.gestor.activa()), "corridas": corr[:15], "modulos": MODULOS})
+    if ruta == "/api/proyectos_demo":
+        return _json(h, [{"id": "mazar", "nombre": "Mazar · punto de partida (datos reales, descargados con UCEclima)", "carpeta": str(demo.RAIZ / "mazar")},
+                         {"id": "sintetico", "nombre": "Demostración SINTÉTICA", "carpeta": str(demo.RAIZ / "demo_sintetico")}])
+    if ruta == "/api/corrida/estado":
+        run = (q.get("id") or [None])[0]
+        if not E.gestor: return _json(h, {"error": "Abre un proyecto."}, 400)
+        if not run:
+            l = E.gestor.listar(); run = l[0]["id"] if l else None
+        if not run: return _json(h, {"estado": "sin_corridas"})
+        e = E.gestor.estado_de(E.gestor.base / run); e["log"] = E.gestor.cola_log(run); return _json(h, e)
+    if ruta == "/api/corrida/resultado":
+        run = (q.get("id") or [None])[0]; return _json(h, E.gestor.resultado(run))
+    if ruta == "/api/corrida/mapa.png":
+        run = (q.get("id") or [None])[0]; return _archivo(h, E.gestor.base / run / "mapa_hmax.png", "image/png")
+    if ruta == "/api/terreno/preview.png":
+        if not E.datos: return _json(h, {"error": "Abre un proyecto."}, 400)
+        png = E.carpeta / "registro" / "terreno_preview.png"; png.parent.mkdir(exist_ok=True)
+        _, cfg = E.cfg()
+        if not png.exists():
+            mapas.render_terreno(cfg, E.carpeta, png, sintetico=E.datos["tipo"] == "sintetico", nota_tipo=f"terreno declarado: {E.datos.get('tipo_terreno', 'desconocido')}")
+        return _archivo(h, png, "image/png")
+    if ruta == "/api/visor/datos":
+        try:
+            if not E.datos: return _json(h, {"error": "Abre un proyecto."}, 400)
+            run = (q.get("id") or [None])[0]
+            if not run:
+                l = [c for c in E.gestor.listar() if c.get("estado") == "completado"]; run = l[0]["id"] if l else None
+            if not run: return _json(h, {"error": "Aún no hay corridas completadas. Ejecuta un caso pequeño en la etapa Corrida."}, 400)
+            return _json(h, visor_api.datos(E, run))
+        except Exception as e:
+            return _json(h, {"error": str(e)[:300]}, 400)
+    if ruta == "/api/hipsometria/alcances":
+        return _json(h, hipso_api.alcances(bool(E.datos)))
+    if ruta == "/api/hipsometria":
+        try:
+            alc = (q.get("alcance") or ["aoi"])[0]
+            if alc == "aoi" and not E.datos: return _json(h, {"error": "Abre un proyecto para analizar su área de estudio."}, 400)
+            return _json(h, hipso_api.datos(E, alc))
+        except Exception as e:
+            return _json(h, {"error": str(e)[:300]}, 400)
+    if ruta == "/api/hipsometria/mapa.png":
+        try:
+            alc = (q.get("alcance") or ["aoi"])[0]; nv = int((q.get("nivel") or ["0"])[0])
+            return _archivo(h, hipso_api.tesela(E, alc, nv), "image/png")
+        except Exception as e:
+            return _json(h, {"error": str(e)[:300]}, 400)
+    if ruta == "/api/lluvia/auditoria":
+        f = RAIZ / "uceclima" / "auditoria" / "M0037_excel_auditoria.json"
+        if not f.exists(): return _json(h, {"error": "Aún no hay auditoría. Ejecutar: python -m uceclima.idf_excel"}, 404)
+        a = json.loads(f.read_text(encoding="utf-8"))
+        return _json(h, {k: a.get(k) for k in ("archivo", "sha256", "atribucion", "serie", "ecuacion_final", "hallazgos", "seleccion_distribucion")} | {"max_dif_recomputo": a["recomputo"]["max_dif_relativa"]})
+    if ruta == "/api/lluvia/seleccion":
+        d = RAIZ / "uceclima" / "salidas" / "seleccion_eventos_milagro"
+        if E.datos and (Path(E.carpeta) / "registro" / "eventos").exists():
+            prop = sorted((Path(E.carpeta) / "registro" / "eventos").glob("seleccion_*"))
+            if prop: d = prop[-1]
+        elif E.datos and not Path(E.carpeta).name.startswith(("milagro", "demo")):
+            return _json(h, {"error": "Este proyecto aún no tiene una selección de eventos. Usa «Seleccionar eventos de este proyecto»."}, 404)
+        if not (d / "eventos_seleccionados.csv").exists(): return _json(h, {"error": "Sin selección todavía."}, 404)
+        import pandas as pd
+        s = pd.read_csv(d / "eventos_seleccionados.csv")
+        cols = [c for c in ["rol", "evento", "fecha_pico_lluvia", "P_max_dia_mm", "Tr_P_max_dia_anios", "dQ_m3s", "V_directo_hm3", "ventana_chirps_inicio", "ventana_chirps_fin", "ya_usado_en", "advertencia"] if c in s.columns]
+        return _json(h, {"eventos": s[cols].fillna("").to_dict("records"), "resumen": json.loads((d / "resumen_seleccion.json").read_text(encoding="utf-8"))})
+    if ruta == "/api/cuencas/resumen":
+        d = NUCLEO / "preparacion_cuencas"
+        if not (E.datos and "milagro" in str(E.datos.get("nombre", "")).lower()):          # estas capas son de Milagro: no se muestran en otro proyecto
+            return _json(h, {"error": "Este proyecto no tiene cuencas ni ríos definidos (Mazar aún no tiene polígono de cuenca). Las capas de cuencas del núcleo son de Milagro y solo se muestran en ese proyecto."}, 404)
+        if not d.exists(): return _json(h, {"error": "Ejecutar preparar_cuencas.py primero."}, 404)
+        import pandas as pd
+        corr = pd.read_csv(d / "correspondencias_hms.csv"); cand = pd.read_csv(d / "candidatos_entrada.csv")
+        return _json(h, {"correspondencia": corr.estado.value_counts().to_dict(), "areas_no_concuerdan": corr[corr.area_concuerda == False][["nombre_shp", "area_shp_km2", "area_hms_km2", "dif_area_pct"]].round(2).to_dict("records"),
+                         "candidatos_entrada": cand[["rio", "x", "y", "borde", "cuencas_en_el_punto", "estado"]].round(1).to_dict("records"),
+                         "datos_faltantes": (d / "datos_faltantes.md").read_text(encoding="utf-8")})
+    if ruta == "/api/cmip6/compuerta":
+        razones = []
+        gate = NUCLEO / "salida_milagro" / "compuerta_linea_base.json"
+        es_milagro = bool(E.datos and "milagro" in str(E.datos.get("nombre", "")).lower())
+        if not es_milagro:                                                                    # la compuerta del núcleo es de Milagro: para otro proyecto se dice lo que sí se sabe
+            razones.append("Línea base de este proyecto: sin calibración ni validación con caudales observados confirmados (en Mazar, la variable «caudal» de CELEC tiene el significado SIN confirmar y ningún tramo GEOGLOWS la reproduce).")
+            razones.append("Las verificaciones numéricas de cada corrida (balance de masa, Courant) están en el módulo Evaluación; no sustituyen la validación con observaciones.")
+        if es_milagro and gate.exists():
+            g = json.loads(gate.read_text(encoding="utf-8")); det = g.get("detalle", {})
+            nombres = {"balance_masa": "balance de masa", "cfl": "Courant", "estado_completo": "corrida completa", "fuente_idf_oficial": "IDF oficial", "factor_cc_unitario": "sin factor climático", "validacion_observada": "validación con observaciones"}
+            est = lambda x: "pendiente" if x is None else ("cumple" if x else "NO cumple")
+            razones.append("Compuerta de línea base: " + ("APROBADA" if g.get("aprobada") else "NO aprobada") + " — " + "; ".join(f"{nombres.get(k, k)}: {est(x)}" for k, x in det.items()))
+        if es_milagro:
+            from climanet import observaciones as O
+            f = O.validar_ficha(NUCLEO / "observaciones")
+            razones.append(f"Ficha de observaciones: estado «{f['estado']}»")
+            razones += f["problemas"][:6]
+        dec = CMD.decision(E.carpeta) if E.datos else None
+        return _json(h, {"bloqueado": dec is None, "razones": razones, "anulacion": dec, "texto_decision": CMD.TEXTO_DECISION,
+                         "nota": ("CMIP6 habilitado BAJO SUPUESTO: la línea base fue asumida por decisión del usuario (no calibrada ni validada)." if dec else
+                                  "Sin línea base calibrada y validada en eventos independientes, NEX-GDDP-CMIP6 no se descarga ni se ejecuta, salvo que el usuario registre la decisión de asumirla.")})
+    return _json(h, {"error": "Ruta desconocida"}, 404)
+
+
+RUTA_ACTIVIDAD = {
+    "/api/entregas/construir": ("evaluacion", "Armó la carpeta de entrega (resultados, BCA FEMA, El Niño/La Niña)"),
+    "/api/idf/x/guardar": ("lluvia", "Fijó la IDF del INAMHI como X del proyecto"),
+    "/api/proyecto/crear": ("proyecto", "Creó la carpeta de un proyecto nuevo"), "/api/descargas/cancelar": ("gee", "Pidió cancelar la descarga en curso"), "/api/gee/autorizar": ("gee", "Inició la autorización de Earth Engine"), "/api/gee/verificar": ("gee", "Verificó la conexión con Earth Engine"), "/api/gee/conectar": ("gee", "Conectó con Earth Engine probando los proyectos disponibles"),
+    "/api/prep/leer": ("preparacion", "Leyó archivos de precipitación y caudal"), "/api/prep/a_proyecto": ("preparacion", "Guardó las series del premódulo en el proyecto"),
+    "/api/hidrologia/exportar": ("evaluacion", "Exportó tablas y gráficas del panel Hidrología y calibración"),
+    "/api/proyecto/abrir": ("proyecto", "Abrió un proyecto"), "/api/proyecto/demo": ("proyecto", "Abrió un proyecto de demostración"), "/api/proyecto/guardar_como": ("proyecto", "Guardó una copia del proyecto"),
+    "/api/sitio/nuevo": ("gee", "Creó un proyecto nuevo desde un sitio y lanzó las descargas"), "/api/descargas/iniciar": ("gee", "Lanzó una descarga"), "/api/gee/probar": ("gee", "Probó la conexión con Earth Engine"),
+    "/api/eventos/seleccionar": ("lluvia", "Seleccionó eventos con lluvia y caudal"), "/api/estaciones/importar": ("lluvia", "Importó una estación"), "/api/estaciones/vista_previa": ("lluvia", "Revisó un CSV de lluvia"),
+    "/api/proyecto/evento": ("lluvia", "Declaró un evento observado como forzamiento"), "/api/terreno/inspeccionar": ("terreno", "Inspeccionó un MDT"), "/api/terreno/registrar": ("terreno", "Registró un MDT"),
+    "/api/prep/escanear": ("preparacion", "Escaneó una carpeta de datos crudos"), "/api/prep/precipitacion": ("preparacion", "Revisó un archivo de lluvia"), "/api/prep/inventario": ("preparacion", "Revisó un inventario de eventos"),
+    "/api/prep/contrastar": ("preparacion", "Contrastó lluvia con el inventario"), "/api/prep/ordenar": ("preparacion", "Ordenó los datos en una carpeta nueva"), "/api/prep/registrar_estacion": ("preparacion", "Registró una estación en el proyecto"),
+    "/api/cmip6/asumir_baseline": ("cmip6", "Registró la decisión: línea base asumida"), "/api/bd/sincronizar": ("cmip6", "Sincronizó la base de datos del proyecto"), "/api/bd/consulta": ("cmip6", "Consultó la base de datos"), "/api/cmip6/evaluar": ("cmip6", "Evaluó los modelos CMIP6 (sesgo, RMSE, QQM)"), "/api/cmip6/factores": ("cmip6", "Calculó factores de cambio (QDM)"), "/api/verificar": ("corrida", "Verificó las entradas"), "/api/corrida/iniciar": ("corrida", "Lanzó una corrida"), "/api/corrida/cancelar": ("corrida", "Canceló la corrida")}
+
+
+def api_post(h, ruta, cuerpo):
+    E = ESTADO
+    if ruta == "/api/proyecto/evento":
+        try:
+            if not E.datos: return _json(h, {"error": "Abre un proyecto."}, 400)
+            if E.gestor and E.gestor.activa(): return _json(h, {"error": "Hay una corrida en curso; espera a que termine."}, 409)
+            return _json(h, evento_api.usar(E, cuerpo.get("estacion", ""), cuerpo.get("inicio"), cuerpo.get("fin"), cuerpo.get("desagregacion") or None, cuerpo.get("sim_horas") or None))
+        except (evento_api.EventoUIError, OSError, ValueError) as e:
+            return _json(h, {"error": str(e)[:400]}, 400)
+    if ruta == "/api/proyecto/evento_quitar":
+        if not E.datos: return _json(h, {"error": "Abre un proyecto."}, 400)
+        return _json(h, evento_api.quitar(E))
+    if ruta.startswith("/api/prep/"):
+        try:
+            if ruta == "/api/prep/leer":
+                return _json(h, PRE.leer_carpeta(cuerpo["carpeta"]) if cuerpo.get("carpeta") else PRE.leer_varios(cuerpo.get("archivos") or [], cuerpo.get("hoja")))
+            if ruta == "/api/prep/confirmar":
+                r = PRE.leer(cuerpo.get("ruta", ""), cuerpo.get("hoja"), cuerpo.get("config") or {}); return _json(h, {"resultado": r, "memoria": PRE.memoria()})
+            if ruta == "/api/prep/vista_previa": return _json(h, PRE.vista_previa(cuerpo.get("ruta", ""), cuerpo.get("hoja")))
+            if ruta == "/api/prep/quitar": return _json(h, PRE.quitar(cuerpo.get("id", "")))
+            if ruta == "/api/prep/limpiar": return _json(h, PRE.limpiar())
+            if ruta == "/api/prep/a_proyecto":
+                if not E.datos: return _json(h, {"error": "Abre o crea un proyecto primero (módulo 1)."}, 400)
+                return _json(h, PRE.guardar_en_proyecto(E.carpeta, cuerpo.get("ids") or None))
+            if ruta == "/api/prep/escanear": return _json(h, prep_api.escanear(cuerpo))
+            if ruta == "/api/prep/precipitacion": return _json(h, prep_api.precipitacion(cuerpo))
+            if ruta == "/api/prep/inventario": return _json(h, prep_api.inventario(cuerpo))
+            if ruta == "/api/prep/contrastar": return _json(h, prep_api.contrastar(cuerpo))
+            if ruta == "/api/prep/ordenar": return _json(h, prep_api.ordenar(E, cuerpo))
+            if ruta == "/api/prep/registrar_estacion": return _json(h, prep_api.registrar_estacion(E, cuerpo))
+            return _json(h, {"error": "Ruta del premódulo no encontrada"}, 404)
+        except (PREP.PrepError, EST.EstacionError, KeyError, OSError, ValueError) as e:
+            return _json(h, {"error": str(e)[:500]}, 400)
+    if ruta == "/api/eventos/seleccionar":
+        try:
+            if not E.datos: return _json(h, {"error": "Abre un proyecto."}, 400)
+            P_, nl = AEV.cargar_lluvia(E.carpeta, cuerpo.get("lluvia") or "media_caja_mm")
+            Q_, nq = AEV.cargar_caudal(E.carpeta, cuerpo.get("caudal") or "celec")
+            otra = "pixel_mm" if (cuerpo.get("lluvia") or "media_caja_mm") == "media_caja_mm" else "media_caja_mm"
+            try: extra = {"CHIRPS_" + otra: AEV.cargar_lluvia(E.carpeta, otra)[0]}
+            except AEV.AnalisisError: extra = None
+            r = AEV.seleccionar(E.carpeta, P_, Q_, f"CHIRPS ({cuerpo.get('lluvia') or 'media_caja_mm'})", nq, int(cuerpo.get("por_bloque") or 2), extra=extra)
+            return _json(h, {"carpeta": r["carpeta"], "hidrogramas": r["hidrogramas"], "criterios": r["criterios"], "resumen": r["resumen"], "n": int(len(r["seleccionados"]))})
+        except (AEV.AnalisisError, OSError, ValueError, KeyError) as e:
+            return _json(h, {"error": str(e)[:400]}, 400)
+    if ruta == "/api/bd/sincronizar":
+        try:
+            if not E.datos: return _json(h, {"error": "Abre un proyecto."}, 400)
+            return _json(h, BD.sincronizar(E.carpeta, cuerpo.get("referencia") or "chirps:celda_nex_mm"))
+        except (BD.BDError, OSError, ValueError, KeyError) as e:
+            return _json(h, {"error": str(e)[:400]}, 400)
+    if ruta == "/api/bd/consulta":
+        try:
+            if not E.datos: return _json(h, {"error": "Abre un proyecto."}, 400)
+            return _json(h, BD.consultar(E.carpeta, cuerpo.get("sql", ""), int(cuerpo.get("max_filas") or 5000)))
+        except (BD.BDError, OSError, ValueError) as e:
+            return _json(h, {"error": str(e)[:400]}, 400)
+    if ruta == "/api/cmip6/asumir_baseline":
+        if not E.datos: return _json(h, {"error": "Abre un proyecto."}, 400)
+        if cuerpo.get("confirmo") is not True: return _json(h, {"error": "Debes confirmar explícitamente (confirmo: true): es una decisión del usuario, no un resultado."}, 400)
+        return _json(h, CMD.asumir_baseline(E.carpeta, cuerpo.get("texto")))
+    if ruta == "/api/cmip6/evaluar":
+        try:
+            if not E.datos: return _json(h, {"error": "Abre un proyecto."}, 400)
+            r = CSB.evaluar(E.carpeta, cuerpo.get("referencia") or "chirps:celda_nex_mm", int(cuerpo.get("k") or 5))
+            return _json(h, {"carpeta": r["carpeta"], "resumen": r["resumen"], "graficas": r["graficas"], "ranking": r["ranking"].replace({float("nan"): None}).to_dict("records")})
+        except (CSB.SesgoError, OSError, ValueError, KeyError) as e:
+            return _json(h, {"error": str(e)[:400]}, 400)
+    if ruta == "/api/cmip6/factores":
+        try:
+            if not E.datos: return _json(h, {"error": "Abre un proyecto."}, 400)
+            r = CSB.factores(E.carpeta)
+            return _json(h, {"carpeta": r["carpeta"], "nota": r["nota"], "factores": r["factores"].replace({float("nan"): None}).to_dict("records")})
+        except (CSB.SesgoError, OSError, ValueError, KeyError, IndexError) as e:
+            return _json(h, {"error": str(e)[:400]}, 400)
+    if ruta == "/api/actividad/narrar":
+        E.log(str(cuerpo.get("mensaje", ""))[:160] or "(mensaje vacío)", str(cuerpo.get("detalle", "")), cuerpo.get("modulo") or None, cuerpo.get("nivel") if cuerpo.get("nivel") in ("info", "ok", "error", "aviso") else "info", "IA / API")
+        return _json(h, {"ok": True, "n": E.seq})
+    if ruta in ("/api/gee/autorizar", "/api/gee/codigo", "/api/gee/cancelar", "/api/gee/verificar", "/api/gee/conectar", "/api/gee/proyecto"):
+        try:
+            if ruta == "/api/gee/autorizar": return _json(h, GEEC.iniciar_autorizacion(cuerpo.get("modo") or "localhost"))
+            if ruta == "/api/gee/codigo": return _json(h, GEEC.enviar_codigo(cuerpo.get("codigo")))
+            if ruta == "/api/gee/cancelar": return _json(h, GEEC.cancelar())
+            if ruta == "/api/gee/conectar": return _json(h, GEEC.conectar())
+            if ruta == "/api/gee/verificar": return _json(h, GEEC.verificar(cuerpo.get("proyecto") or None))
+            GEEC.guardar_proyecto(cuerpo.get("proyecto")); return _json(h, GEEC.estado())
+        except GEEC.GeeError as e:
+            return _json(h, {"error": str(e)}, 400)
+    if ruta == "/api/proyecto/crear":
+        try:
+            if E.gestor and E.gestor.activa(): return _json(h, {"error": "Hay una corrida en curso; espera a que termine."}, 409)
+            carpeta = sitio_api.crear(cuerpo.get("nombre"), cuerpo.get("lon"), cuerpo.get("lat"), base=cuerpo.get("carpeta_base") or None)
+            guardadas = PRE.guardar_en_proyecto(carpeta) if cuerpo.get("incluir_memoria", True) and PRE.memoria()["n"] else {"guardadas": [], "carpeta": None}
+            return _json(h, {"proyecto": E.abrir(str(carpeta)), "carpeta": str(carpeta), "series_guardadas": len(guardadas["guardadas"])})
+        except (DESC.DescargaError, KeyError, ValueError, OSError) as e:
+            return _json(h, {"error": str(e)[:400]}, 400)
+    if ruta == "/api/sitio/nuevo":
+        try:
+            if E.gestor and E.gestor.activa(): return _json(h, {"error": "Hay una corrida en curso; espera a que termine."}, 409)
+            if E.descargas.activa(): return _json(h, {"error": "Ya hay una descarga en curso."}, 409)
+            carpeta = sitio_api.crear(cuerpo.get("nombre"), cuerpo.get("lon"), cuerpo.get("lat"))
+            E.abrir(str(carpeta))
+            params = {"lon": float(cuerpo["lon"]), "lat": float(cuerpo["lat"]), "inicio": cuerpo.get("inicio") or "1981-01-01", "fin": cuerpo.get("fin") or datetime.now().strftime("%Y-%m-%d"),
+                      "medio_km": float(cuerpo.get("medio_km") or 20), "celec": bool(cuerpo.get("celec")), "celec_inicio": cuerpo.get("celec_inicio")}
+            DESC.CONTEXTO["tras_mdt"] = lambda d, p: sitio_api.registrar_mdt_en(E, d, p)
+            did = E.descargas.iniciar(carpeta, "sitio", params)
+            return _json(h, {"proyecto": str(carpeta), "descarga": did})
+        except (DESC.DescargaError, KeyError, ValueError, OSError) as e:
+            return _json(h, {"error": str(e)[:400]}, 400)
+    if ruta == "/api/hidrologia/exportar":
+        try:
+            if not E.datos: return _json(h, {"error": "Abre un proyecto."}, 400)
+            return _json(h, HID.exportar(E.carpeta, cuerpo.get("fuente", "corrida"), cuerpo.get("id", "")))
+        except (HID.HidroError, KeyError, FileNotFoundError, ValueError, OSError) as e: return _json(h, {"error": str(e)[:400]}, 400)
+    if ruta == "/api/entregas/construir":
+        try:
+            if not E.datos: return _json(h, {"error": "Abre un proyecto."}, 400)
+            if E.gestor and E.gestor.activa(): return _json(h, {"error": "Hay una corrida en curso; espera a que termine."}, 409)
+            raiz, man = ENT.construir(E.carpeta, E.datos)
+            por = {}
+            for a in man["archivos"]: k = a["ruta"].split("/")[0]; por[k] = por.get(k, 0) + 1
+            return _json(h, {"carpeta": str(Path(raiz).relative_to(E.carpeta)).replace("\\", "/"), "ruta_completa": str(raiz), "archivos": len(man["archivos"]), "por_carpeta": por, "notas": man["notas"], "corridas": man["corridas"]})
+        except (ValueError, KeyError, OSError) as e: return _json(h, {"error": str(e)[:300]}, 400)
+    if ruta == "/api/idf/x/guardar":
+        try:
+            if not E.datos: return _json(h, {"error": "Abre un proyecto."}, 400)
+            est = cuerpo.get("estacion") or None; modo = cuerpo.get("modo") or "auto"
+            fijada = IDFX.fijar_en_proyecto(E, est, modo)
+            res, car, files = IDFX.guardar(E.carpeta, E.datos, fijada["estacion"], int(cuerpo.get("duracion_min") or 180), int(cuerpo.get("tr") or 100))
+            return _json(h, {"fijada": fijada, "carpeta": str(Path(car).relative_to(E.carpeta)).replace("\\", "/"), "archivos": files, "referencia": res["referencia"]})
+        except (ValueError, KeyError, IndexError, OSError) as e: return _json(h, {"error": str(e)[:300]}, 400)
+    if ruta == "/api/descargas/cancelar":
+        return _json(h, {"cancelada": bool(E.descargas.cancelar())})
+    if ruta == "/api/descargas/iniciar":
+        try:
+            if not E.datos: return _json(h, {"error": "Abre un proyecto."}, 400)
+            if E.gestor and E.gestor.activa(): return _json(h, {"error": "Hay una corrida en curso; espera a que termine."}, 409)
+            fuente = cuerpo.get("fuente", "")
+            if fuente == "mdt": DESC.CONTEXTO["tras_mdt"] = None
+            return _json(h, {"descarga": E.descargas.iniciar(E.carpeta, fuente, cuerpo.get("parametros") or {}, al_terminar=(sitio_api.registrar_mdt(E) if fuente == "mdt" else None))})
+        except DESC.DescargaError as e:
+            return _json(h, {"error": str(e)}, 400)
+    if ruta == "/api/ia/instalar":
+        try:
+            return _json(h, ia_config.instalar(cuerpo.get("destino", ""), cuerpo.get("carpeta") or None))
+        except (ia_config.IAConfigError, OSError) as e:
+            return _json(h, {"error": str(e)[:400]}, 400)
+    if ruta == "/api/ia/clave":
+        return _json(h, {"clave": E.clave_api, "archivo": str(api_abierta.ARCHIVO_CLAVE)})
+    if ruta == "/api/estaciones/vista_previa":
+        try:
+            return _json(h, EST.vista_previa(cuerpo.get("archivo", "")))
+        except (EST.EstacionError, OSError) as e:
+            return _json(h, {"error": str(e)[:300]}, 400)
+    if ruta == "/api/estaciones/importar":
+        try:
+            if not E.datos: return _json(h, {"error": "Abre un proyecto."}, 400)
+            return _json(h, EST.importar(E.carpeta, E.datos["crs"], cuerpo.get("archivo", ""), cuerpo))
+        except (EST.EstacionError, OSError) as e:
+            return _json(h, {"error": str(e)[:400]}, 400)
+    if ruta == "/api/estaciones/hietograma":
+        try:
+            if not E.datos: return _json(h, {"error": "Abre un proyecto."}, 400)
+            return _json(h, EST.hietograma(E.carpeta, cuerpo.get("id", ""), cuerpo.get("inicio"), cuerpo.get("fin")))
+        except (EST.EstacionError, OSError, ValueError) as e:
+            return _json(h, {"error": str(e)[:300]}, 400)
+    if ruta == "/api/terreno/inspeccionar":
+        try:
+            r = TIMP.inspeccionar(cuerpo.get("archivo", ""))
+            if E.datos:
+                try: r["coincidencia"] = TIMP.coincidencia(r, E)
+                except Exception as ex: r["coincidencia"] = {"veredicto": "error", "mensaje": "No se pudo comparar con la zona de trabajo: " + str(ex)[:160], "pistas": []}
+            return _json(h, r)
+        except TIMP.TerrenoError as e:
+            return _json(h, {"error": str(e)}, 400)
+    if ruta == "/api/terreno/registrar":
+        try:
+            if not E.datos: return _json(h, {"error": "Abre un proyecto."}, 400)
+            if E.gestor and E.gestor.activa(): return _json(h, {"error": "Hay una corrida en curso; espera a que termine."}, 409)
+            return _json(h, TIMP.registrar(E, cuerpo.get("archivo", ""), cuerpo.get("tipo_terreno", "desconocido"), cuerpo.get("datum", ""), cuerpo.get("res", 10), cuerpo.get("aoi")))
+        except TIMP.TerrenoError as e:
+            return _json(h, {"error": str(e)}, 400)
+    if ruta == "/api/dialogo":
+        d = _dialogo(cuerpo.get("tipo", "archivo"))
+        return _json(h, {"rutas": d} if isinstance(d, list) else {"ruta": d})
+    if ruta == "/api/proyecto/abrir":
+        try:
+            d = E.abrir(cuerpo["ruta"]); return _json(h, {"proyecto": d})
+        except (P.ProyectoError, KeyError) as e:
+            return _json(h, {"error": str(e)}, 400)
+    if ruta == "/api/proyecto/demo":
+        try:
+            if cuerpo.get("id") == "mazar":
+                carpeta = demo.RAIZ / "mazar"
+                if not (carpeta / P.ARCHIVO).exists(): return _json(h, {"error": "El proyecto Mazar de demostración no está en esta instalación."}, 404)
+            else:
+                carpeta = demo.crear_sintetico() if cuerpo.get("id") == "sintetico" else demo.crear_milagro_pequeno()
+            return _json(h, {"proyecto": E.abrir(carpeta)})
+        except Exception as e:
+            return _json(h, {"error": str(e)}, 400)
+    if ruta == "/api/proyecto/guardar_como":
+        if not E.datos: return _json(h, {"error": "No hay proyecto abierto."}, 400)
+        try:
+            destino = Path(cuerpo["carpeta"])
+            if (destino / P.ARCHIVO).exists() and not cuerpo.get("sobrescribir"):
+                return _json(h, {"error": f"Ya existe un proyecto en {destino}. No se sobrescribe sin confirmación explícita."}, 409)
+            import shutil
+            d = {k: v for k, v in E.datos.items() if not k.startswith("_")}; d["nombre"] = cuerpo.get("nombre") or d["nombre"]
+            destino.mkdir(parents=True, exist_ok=True)
+            cp, _ = E.cfg(); shutil.copy2(cp, destino / "config_climanet.json"); d["config_climanet"] = "config_climanet.json"
+            origen = E.carpeta / "datos"
+            if origen.is_dir() and not (destino / "datos").exists(): shutil.copytree(origen, destino / "datos")
+            d["procedencia"] = {**d["procedencia"], "notas": d["procedencia"].get("notas", []) + [f"Guardado como copia el {datetime.now():%Y-%m-%d %H:%M} desde {E.carpeta}"]}
+            P.guardar(d, destino, sobrescribir=bool(cuerpo.get("sobrescribir")))
+            return _json(h, {"guardado": str(destino)})
+        except (P.ProyectoError, KeyError) as e:
+            return _json(h, {"error": str(e)}, 400)
+    if ruta == "/api/verificar":
+        if not E.datos: return _json(h, {"error": "Abre un proyecto."}, 400)
+        return _json(h, P.verificar(E.datos, E.carpeta))
+    if ruta == "/api/corrida/iniciar":
+        if not E.datos: return _json(h, {"error": "Abre un proyecto."}, 400)
+        v = P.verificar(E.datos, E.carpeta)
+        if not v["puede_ejecutar"]:
+            return _json(h, {"error": "La comprobación previa tiene errores; no se ejecuta.", "chequeos": [c for c in v["chequeos"] if c["estado"] == "error"]}, 422)
+        _, cfg = E.cfg()
+        esc = None; etiqueta = "sintetica" if E.datos["tipo"] == "sintetico" else "real"
+        if cuerpo.get("escenario"):
+            try:
+                parche, esc = ESC.preparar(E.carpeta, cfg, cuerpo["escenario"], cuerpo.get("estacion") or IDFX.estacion_proyecto(cfg, E.datos))
+                cfg = {**cfg, **{k: v_ for k, v_ in parche.items() if v_ is not None}}
+                for k, v_ in parche.items():
+                    if v_ is None: cfg.pop(k, None)
+                if parche.get("idf_csv"): cfg["idf_csv"] = str((Path(E.carpeta) / parche["idf_csv"]).resolve())
+                etiqueta = f"{etiqueta}_{esc['id']}"
+            except ESC.EscenarioError as e:
+                return _json(h, {"error": str(e)}, 400)
+        try:
+            rid = E.gestor.iniciar(cfg, E.datos["nombre"], E.datos["tipo"], E.carpeta, etiqueta=etiqueta, escenario=esc)
+            return _json(h, {"id": rid, "escenario": esc})
+        except RuntimeError as e:
+            return _json(h, {"error": str(e)}, 409)
+    if ruta == "/api/corrida/cancelar":
+        return _json(h, {"cancelada": bool(E.gestor and E.gestor.cancelar())})
+    if ruta == "/api/gee/probar":
+        from uceclima import gee_chirps
+        est, ee = gee_chirps.iniciar(cuerpo.get("proyecto") or None)
+        est["mensaje"] = ("Conexión correcta con Earth Engine (credenciales ya autorizadas en este equipo)." if est["autenticado"] else
+                          "Sin acceso a Earth Engine. Autorizar una vez con «earthengine authenticate» en una terminal y, si procede, indicar el proyecto Cloud. La interfaz nunca guarda ni muestra tokens.")
+        cache = RAIZ / "uceclima" / "cache" / "chirps"
+        est["cache_local"] = [str(p.relative_to(RAIZ)) for p in cache.glob("*/*")] if cache.exists() else []
+        return _json(h, est)
+    if ruta == "/api/chirps/plan":
+        from uceclima.eventos import Evento
+        try:
+            ev = Evento(cuerpo.get("nombre") or "evento", f"{cuerpo['inicio']}T00:00:00-05:00", f"{cuerpo['fin']}T00:00:00-05:00", cuerpo.get("estacion") or "CUMBE")
+            return _json(h, ev.plan())
+        except Exception as e:
+            return _json(h, {"error": str(e)}, 400)
+    if ruta == "/api/chirps/cobertura":
+        from uceclima import gee_chirps
+        from uceclima.eventos import Evento
+        try:
+            ev = Evento("evento", f"{cuerpo['inicio']}T00:00:00-05:00", f"{cuerpo['fin']}T00:00:00-05:00", "CUMBE"); plan = ev.plan()
+            if (datetime.fromisoformat(cuerpo["fin"]) - datetime.fromisoformat(cuerpo["inicio"])).days > 30:
+                return _json(h, {"error": "La interfaz limita el evento a 30 días (consultas pequeñas)."}, 400)
+            est, ee = gee_chirps.iniciar()
+            if ee is None: return _json(h, {"error": "Sin acceso a Earth Engine: " + str(est['error'])[:200], "plan": plan}, 503)
+            sel = gee_chirps.seleccionar(plan, gee_chirps.disponibilidad(plan, ee))
+            return _json(h, {"plan": plan, "seleccion": {k: sel.get(k) for k in ("version", "coleccion", "cobertura_completa", "fallback", "estado")},
+                             "dias_faltantes": {k: v["dias_faltantes"][:10] for k, v in sel["diagnostico"].items()}})
+        except Exception as e:
+            return _json(h, {"error": str(e)[:300]}, 400)
+    return _json(h, {"error": "Ruta desconocida"}, 404)
+
+
+class Manejador(BaseHTTPRequestHandler):
+    server_version = "UCEclima/0.1"
+
+    def log_message(self, fmt, *a):                       # silencio: el registro de corrida es el persistente
+        pass
+
+    def send_response(self, code, message=None):
+        self._codigo = code
+        super().send_response(code, message)
+
+    def _host_ok(self):
+        host = (self.headers.get("Host") or "").split(":")[0]
+        return host in ("127.0.0.1", "localhost")
+
+    def do_GET(self):
+        if not self._host_ok(): return _json(self, {"error": "Host no permitido"}, 403)
+        u = urlparse(self.path); ruta = u.path; q = parse_qs(u.query)
+        try:
+            if ruta.startswith("/api/"):
+                return api_get(self, ruta, q)
+            if ruta in ("/", "/index.html"):
+                html = (STATIC / "index.html").read_text(encoding="utf-8").replace("__TOKEN__", ESTADO.token)
+                b = html.encode("utf-8"); self.send_response(200); self.send_header("Content-Type", "text/html; charset=utf-8"); self.send_header("Content-Length", str(len(b)))
+                self.send_header("Cache-Control", "no-store"); self.end_headers(); return self.wfile.write(b)
+            if ruta.startswith("/static/"):
+                f = (STATIC / ruta[len("/static/"):]).resolve()
+                if STATIC.resolve() not in f.parents: return _json(self, {"error": "No permitido"}, 403)
+                return _archivo(self, f)
+            if ruta == "/visor":
+                return _archivo(self, STATIC / "visor.html", "text/html; charset=utf-8")
+            if ruta == "/maqueta":
+                return _archivo(self, STATIC / "maqueta.html", "text/html; charset=utf-8")
+            if ruta == "/visual/index.html":                      # maqueta 4D SINTÉTICA de Codex
+                return _archivo(self, NUCLEO / "visual" / "index.html", "text/html; charset=utf-8")
+            if ruta == "/visual/base_milagro.jpg":
+                return _archivo(self, NUCLEO / "visual" / "base_milagro.jpg")
+            return _json(self, {"error": "No encontrado"}, 404)
+        except Exception:
+            return _json(self, {"error": "Error interno", "detalle": traceback.format_exc()[-600:]}, 500)
+
+    def do_POST(self):
+        if not self._host_ok(): return _json(self, {"error": "Host no permitido"}, 403)
+        if self.headers.get("X-UCECLIMA-TOKEN") != ESTADO.token and not api_abierta.clave_valida(ESTADO.clave_api, self.headers.get("Authorization")):
+            return _json(self, {"error": "Falta la clave de API (Authorization: Bearer <clave>) o el token de sesión"}, 403)
+        n = int(self.headers.get("Content-Length") or 0)
+        try:
+            cuerpo = json.loads(self.rfile.read(n).decode("utf-8")) if n else {}
+        except json.JSONDecodeError:
+            return _json(self, {"error": "JSON inválido"}, 400)
+        ruta_p = urlparse(self.path).path
+        origen = "IA / API" if api_abierta.clave_valida(ESTADO.clave_api, self.headers.get("Authorization")) else "interfaz"
+        self._codigo = 200
+        try:
+            return api_post(self, ruta_p, cuerpo)
+        except Exception:
+            return _json(self, {"error": "Error interno", "detalle": traceback.format_exc()[-600:]}, 500)
+        finally:
+            info = RUTA_ACTIVIDAD.get(ruta_p)
+            if info:
+                ok = getattr(self, "_codigo", 200) < 400
+                ESTADO.log(info[1] + ("" if ok else " (con error)"), ruta_p, info[0], "info" if ok else "error", origen, ok)
+
+
+def crear_servidor(puerto=0):
+    srv = ThreadingHTTPServer(("127.0.0.1", puerto), Manejador)
+    ESTADO.puerto = srv.server_address[1]
+    return srv
+
+
+_LATIDO = [0.0]
+
+
+def _vigilar_ventana(srv, tolerancia_s=120.0, espera_inicial_s=60.0):
+    """La página envía un latido cada 5 s. Sin latidos durante `tolerancia_s` (ventana cerrada) se cierra el servidor, salvo que haya una corrida activa."""
+    import time
+    t0 = time.time()
+    while True:
+        time.sleep(3)
+        ult = _LATIDO[0] or t0
+        limite = tolerancia_s if _LATIDO[0] else espera_inicial_s
+        if time.time() - ult > limite and not (ESTADO.gestor and ESTADO.gestor.activa()):
+            srv.shutdown(); return
+
+
+def main(puerto=8765, abrir=True):
+    try:
+        srv = crear_servidor(puerto)
+    except OSError:                                        # puerto ocupado (otra copia abierta): se usa uno libre
+        srv = crear_servidor(0)
+    url = f"http://127.0.0.1:{ESTADO.puerto}/"
+    print(f"UCEclima en {url}  (Ctrl+C para cerrar)")
+    if abrir:
+        from .lanzar import abrir_ventana
+        abrir_ventana(url)
+    if getattr(sys, "frozen", False):                      # sin consola: al cerrar la ventana de la aplicación el programa se detiene solo
+        threading.Thread(target=_vigilar_ventana, args=(srv,), daemon=True).start()
+    try:
+        srv.serve_forever()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        if ESTADO.gestor and ESTADO.gestor.activa():
+            ESTADO.gestor.cancelar()
+        srv.server_close()
+
+
+if __name__ == "__main__":
+    main()

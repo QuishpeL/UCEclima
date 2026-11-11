@@ -1,0 +1,47 @@
+:root{--fondo:#0b121c;--vidrio:rgba(14,24,37,.80);--linea:#26384f;--texto:#e6edf5;--tenue:#93a4b8;--acento:#6cc4ec;--acento2:#ff2d95}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:linear-gradient(160deg,#0b121c 0%,#12202f 48%,#1a3148 100%);color:var(--texto);font:14px/1.45 "Calibri Light",Calibri,Arial,sans-serif}
+#lienzo{position:fixed;inset:0}#lienzo canvas{display:block}
+#carga{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;background:var(--fondo);color:var(--tenue);letter-spacing:.04em;transition:opacity .6s}
+#carga.fuera{opacity:0;pointer-events:none}
+aside,section{position:fixed;z-index:10;background:var(--vidrio);border:1px solid var(--linea);border-radius:14px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 8px 32px rgba(0,0,0,.45)}
+#panel{top:16px;left:16px;width:310px;max-height:calc(100% - 32px);overflow:auto;padding:16px 16px 12px}
+h1{font-size:15px;margin:0 0 2px;font-weight:600;letter-spacing:.02em}
+.sub{margin:0 0 12px;color:var(--tenue);font-size:11.5px}
+.grupo{display:grid;gap:6px;margin-bottom:12px}
+.grupo button{all:unset;cursor:pointer;display:flex;align-items:center;gap:9px;padding:7px 10px;border:1px solid var(--linea);border-radius:9px;color:var(--tenue);transition:.15s}
+.grupo button:hover{border-color:#3a4250;color:var(--texto)}
+.grupo button[aria-checked="true"]{border-color:var(--acento);color:var(--texto);background:rgba(92,200,232,.09);box-shadow:0 0 14px rgba(92,200,232,.18)}
+.grupo button:focus-visible,.fila button:focus-visible,input:focus-visible{outline:2px solid var(--acento);outline-offset:2px}
+.grupo i{width:10px;height:10px;border-radius:50%;flex:none;background:var(--c)}
+.grupo small{margin-left:auto;color:var(--tenue);font-size:10.5px}
+.leyenda{margin-bottom:12px}.barra{height:8px;border-radius:4px;margin-bottom:4px}
+.pie{display:flex;justify-content:space-between;color:var(--tenue);font-size:11px;gap:6px}.pie span:nth-child(2){text-align:center;flex:1}
+.ctl{margin-bottom:10px;position:relative}.ctl label{color:var(--tenue);font-size:11.5px}.ctl output{float:right;color:var(--texto);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--acento)}
+.fila{display:flex;gap:6px;margin:4px 0 10px}
+.fila button{flex:1;cursor:pointer;padding:7px 8px;border-radius:9px;border:1px solid var(--linea);background:rgba(255,255,255,.03);color:var(--texto);font:inherit;transition:.15s}
+.fila button:hover{border-color:var(--acento)}.fila button[aria-pressed="true"]{border-color:var(--acento2);box-shadow:0 0 14px rgba(255,45,149,.25)}
+.tog{display:flex;align-items:center;gap:8px;margin-bottom:6px;color:var(--texto);cursor:pointer}
+.tog input{appearance:none;width:14px;height:14px;border:1px solid #3a4250;border-radius:3px;background:rgba(255,255,255,.02);position:relative;cursor:pointer}
+.tog input:checked{background:var(--acento2);border-color:var(--acento2)}
+.tog input:checked::after{content:"";position:absolute;left:4px;top:1px;width:3px;height:7px;border:solid #0d1015;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.nota{margin:10px 0 0;padding-top:8px;border-top:1px solid var(--linea);color:var(--tenue);font-size:11px}
+#stats{top:16px;right:16px;display:flex;gap:1px;padding:0;overflow:hidden;max-width:calc(100% - 360px)}
+.card{padding:10px 16px;min-width:110px;border-right:1px solid var(--linea)}.card:last-child{border:0}
+.card b{display:block;font-size:20px;font-weight:600;font-variant-numeric:tabular-nums;color:#fff}.card span{color:var(--tenue);font-size:11px}
+#lectura{bottom:16px;right:16px;padding:10px 14px;min-width:260px;font-variant-numeric:tabular-nums}.dim{color:var(--tenue)}
+#lectura b{color:var(--acento)}
+#error{position:fixed;z-index:40;inset:0;display:flex;align-items:center;justify-content:center;background:var(--fondo);padding:24px;text-align:center;color:#ffb4a8}
+#error[hidden]{display:none}
+@media (max-width:760px){#panel{width:auto;right:16px;max-height:40%}#stats{top:auto;bottom:70px;left:16px;right:16px;max-width:none;overflow-x:auto}#lectura{left:16px;right:16px;bottom:16px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+h1{font-weight:300;font-size:18px}.card b{font-weight:400}button,input{font-family:inherit}
+
+#fant .gh{margin:10px 0 6px;color:var(--tenue);font-size:11.5px;letter-spacing:.04em;text-transform:uppercase}#fant .tog{margin-bottom:5px}.ch{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:2px;flex:none;box-shadow:0 0 8px currentColor}
+
+/* Gamma · película del calado */
+#curvaV { width: 100%; height: 64px; display: block; margin: 4px 0 2px; background: rgba(10,18,30,.55); border-radius: 6px; }
+#ritmo { font-size: 12px; margin-left: 8px; color: #8b95a3; }
+#tiempoBox { border-top: 1px solid rgba(92,200,232,.18); border-bottom: 1px solid rgba(92,200,232,.18); padding: 6px 0; margin: 8px 0; }

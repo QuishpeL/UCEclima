@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Visor 3D de resultados · UCEclima</title>
+<link rel="stylesheet" href="/static/visor.css">
+</head>
+<body>
+<div id="lienzo" aria-label="Vista 3D isométrica del terreno y de la capa de resultados elegida"></div>
+<div id="carga">preparando la maqueta…</div>
+
+<aside id="panel" aria-label="Controles del visor">
+  <h1 id="titulo">Visor 3D de resultados</h1>
+  <p class="sub" id="subtitulo"></p>
+
+  <div class="grupo" role="radiogroup" aria-label="Capa mostrada" id="capas"></div>
+
+  <div class="leyenda">
+    <div class="barra" id="barra"></div>
+    <div class="pie"><span id="leyMin">0</span><span id="leyTit"></span><span id="leyMax"></span></div>
+  </div>
+
+  <div class="ctl"><label for="umbral">Calado mínimo para dibujar agua</label><output id="umbralV"></output>
+    <input type="range" id="umbral" min="0" max="1" step="0.01" value="0.05"></div>
+  <div class="ctl"><label for="exag">Exageración vertical</label><output id="exagV"></output>
+    <input type="range" id="exag" min="1" max="40" step="0.5" value="6"></div>
+
+  <div id="tiempoBox" hidden>
+    <div class="fila"><button id="pelicula" type="button" aria-pressed="false">▶ Evolución en el tiempo</button><span class="chip" id="ritmo"></span></div>
+    <div class="ctl"><label for="tiempo">Tiempo simulado</label><output id="tiempoV"></output>
+      <input type="range" id="tiempo" min="0" max="1" step="0.0005" value="1"></div>
+    <canvas id="curvaV" width="300" height="64" aria-label="Volumen de agua en el dominio a lo largo del tiempo; la zona sombreada es la crecida"></canvas>
+    <label class="tog"><input type="checkbox" id="vias" checked> Vías y ríos (OpenStreetMap)</label>
+    <div class="ctl"><label for="selCorrida">Corrida abierta (X = actual · Y = cambio climático)</label><select id="selCorrida" style="width:100%"></select></div>
+    <label class="tog" title="HydroSHEDS/GEOGLOWS: red gruesa, sirve para la cuenca y el caudal, no para ubicar el cauce"><input type="checkbox" id="rios"> Red HydroSHEDS (aproximada, ±1 km)</label>
+    <label class="tog"><input type="checkbox" id="lenta" checked> Cámara lenta en la crecida</label>
+  </div>
+  <div class="fila">
+    <button id="barrer" type="button" aria-pressed="false">▶ Barrido por calado</button>
+    <button id="proy" type="button">Isométrica</button>
+    <button id="reset" type="button">Vista</button>
+  </div>
+  <label class="tog"><input type="checkbox" id="bloom" checked> Brillo (bloom)</label>
+  <label class="tog"><input type="checkbox" id="rejilla" checked> Rejilla y curvas de nivel</label>
+  <label class="tog"><input type="checkbox" id="agua" checked> Mostrar agua</label>
+  <div id="fant"></div>
+  <div id="papersCC"></div>
+  <p class="nota" id="aviso"></p>
+</aside>
+<script>
+/* CMIP6 experimental (papers 1–3), junto al escenario Y del visor. Solo lectura; si no hay cálculo, no muestra nada. */
+fetch("/api/cmip6/papers").then(r => r.ok ? r.json() : null).then(r => {
+  const el = document.getElementById("papersCC"); if (!r || !el || r.error) return;
+  const b = (r.banda_factor_tr100 || []).map(x => `<div>Lluvia de diseño Tr 100 · ${x.horizonte}: <b style="color:#ff4da6">×${x.mediana.toFixed(2)}</b> <span style="color:#8b95a3">(p10–p90 ×${x.p10.toFixed(2)}–${x.p90.toFixed(2)})</span></div>`).join("");
+  const t = (r.toe || []).filter(x => ["PRCPTOT", "Rx1day"].includes(x.indice)).map(x => `<div>${x.indice}: ${x.toe_ruido_referencia ? "emerge en <b>" + x.toe_ruido_referencia + "</b>" : "<b>no emerge antes de 2100</b>"} con ruido real <span style="color:#8b95a3">(${x.toe_ruido_modelos ? "emerge en " + x.toe_ruido_modelos : "no emerge"} con ruido de modelos)</span></div>`).join("");
+  const n = r.n_efectivo && r.n_efectivo.n_eff ? `<div>Modelos independientes: <b>${r.n_efectivo.n_eff}</b> de ${r.n_efectivo.n_modelos}</div>` : "";
+  el.innerHTML = `<div class="gh" style="margin-top:10px">CMIP6 experimental (papers 1–3)</div><div style="font-size:12px;line-height:1.5">${b}${t}${n}<div style="color:#8b95a3">Referencia: ${r.referencia_texto} · SSP5-8.5 · proyección, no predicción.</div></div>`;
+}).catch(() => {});
+</script>
+
+<section id="stats" aria-live="polite"></section>
+<section id="lectura" aria-live="polite"><span class="dim">Pasa el cursor sobre el terreno para leer una celda.</span></section>
+<div id="error" hidden></div>
+<script src="/static/vendor/three-bundle.js"></script>
+<script src="/static/visor.js"></script>
+</body>
+</html>

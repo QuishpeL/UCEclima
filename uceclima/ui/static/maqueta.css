@@ -1,0 +1,38 @@
+/* Paleta papel cálido / carboncillo para la maqueta (sobre el tema claro de anatomy) */
+body.iso[data-theme="light"]{
+  --anatomy-page:#f4efe6;--anatomy-card:#fbf8f2;--anatomy-text:#4a4239;--anatomy-strong:#2b2723;--anatomy-muted:#8a7f70;
+  --anatomy-paper:#f1ebde;--anatomy-face:#fbf8f2;--anatomy-top:#fbf8f2;
+  --anatomy-shade-0:#d3c9b6;--anatomy-shade-1:#ddd4c3;--anatomy-shade-2:#e6dece;--anatomy-shade-3:#eee7d9;
+  --anatomy-hi:#2b2723;--anatomy-mid:#8a7f70;--anatomy-lo:#b9ad98;--anatomy-faint:#d6ccb8;--anatomy-halo:#7d725f;
+}
+body{margin:0;background:var(--anatomy-page);font:15px/1.5 "Calibri Light",Calibri,Arial,sans-serif;color:var(--anatomy-text)}
+.mq{max-width:980px;margin:0 auto;padding:12px 14px 28px}
+.mq h2{font-size:15px;margin:2px 0 6px;color:var(--anatomy-strong)}
+.mq-carga{padding:30px;text-align:center;color:var(--anatomy-muted)}
+.mq-barra{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:6px 0 12px}
+.mq-barra label{font-size:13px;color:var(--anatomy-muted)}
+.mq select,.mq input[type=range],.mq button{font:inherit}
+.mq select{padding:5px 8px;border:1px solid var(--anatomy-mid);border-radius:8px;background:#fff;max-width:220px}
+.mq input[type=range]{flex:1 1 240px;min-width:160px;accent-color:#1f5f8b}
+.mq button{padding:5px 12px;border:1px solid var(--anatomy-mid);border-radius:8px;background:#fff;cursor:pointer}
+.mq button[aria-pressed="true"]{background:#1f5f8b;color:#fff;border-color:#1f5f8b}
+.mq-aviso{background:#f6e9c8;border-left:4px solid #8a5a00;padding:8px 12px;border-radius:0 8px 8px 0;margin:8px 0;font-size:13px}
+.mq-aviso.sint{background:#f6dad6;border-color:#a1281f}
+.mq-datos{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:10px 0}
+.mq-dato{background:#fff;border:1px solid var(--anatomy-lo);border-radius:8px;padding:7px 10px}
+.mq-dato b{display:block;font-size:19px;color:#1f5f8b;font-variant-numeric:tabular-nums}
+.mq-dato span{font-size:12px;color:var(--anatomy-muted)}
+.mq svg.cv text{font-family:"Segoe UI",system-ui,sans-serif}
+.mq .iso-stage{outline:none}
+.mq .iso-stage:focus-visible{outline:3px solid #0b57d0;outline-offset:3px;border-radius:8px}
+.mq details{margin-top:8px;font-size:13px}.mq summary{cursor:pointer;color:#1f5f8b;font-weight:600}
+@media (max-width:640px){.mq{padding:8px}.mq-dato b{font-size:16px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* tema noche (cuando la interfaz está en oscuro) */
+body.iso:not([data-theme="light"]){background:linear-gradient(160deg,#0b121c,#12202f 55%,#1a3148);--anatomy-page:#0f1a29;--anatomy-card:#112033;--anatomy-paper:#112033;--anatomy-face:#1a2e45;--anatomy-top:#203a57;--anatomy-shade-0:#0c1624;--anatomy-shade-1:#0f1c2d;--anatomy-shade-2:#132338;--anatomy-shade-3:#182b43;--anatomy-hi:#d7e4f2;--anatomy-mid:#6f87a3;--anatomy-lo:#3a5069;--anatomy-faint:#2a3d54}
+body.iso:not([data-theme="light"]) .mq select,body.iso:not([data-theme="light"]) .mq button{background:rgba(255,255,255,.04);color:#e8ebef;border-color:#2f3947;color-scheme:dark}
+body.iso:not([data-theme="light"]) .mq button[aria-pressed="true"]{background:#5cc8e8;color:#041419;border-color:#5cc8e8}
+body.iso:not([data-theme="light"]) .mq input[type=range]{accent-color:#5cc8e8}
+body.iso:not([data-theme="light"]) .mq-dato{background:#0a0d12;border-color:#232a35}
+body.iso:not([data-theme="light"]) .mq-dato b,body.iso:not([data-theme="light"]) .mq summary{color:#bfeefa}

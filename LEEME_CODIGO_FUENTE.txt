@@ -1,0 +1,37 @@
+UCEclima Lambda 9.1.0 - CODIGO FUENTE
+=====================================
+Programa de ordenador para modelacion hidrologica e hidraulica 2D de inundaciones en Ecuador.
+Autor: Diego Quishpe Landeta. Coautoras: Teresa Palacios y Maria Eugenia Avila-Salem.
+Doctorado en Gestion Sustentable del Agua y Riego - Universidad Central del Ecuador.
+Version 9.1.0 (Lambda). derivada de UCEclima Eta 9.0.0.
+Repositorio git local: commit 4be9739. Preparado el 05/11/2026.
+
+CONTENIDO
+  uceclima/            aplicacion (servidor local. interfaz web. modulos. pruebas en uceclima/tests)
+  uceclima/ui/static/  interfaz web (HTML y JavaScript)
+  climanet/            nucleo hidrologico e hidraulico (climanet/climanet)
+  instalador/          guion del instalador (Inno Setup) y LEEME
+  uceclima/requirements.txt   dependencias de Python
+
+LO QUE NO SE INCLUYE (a proposito)
+  - Ejecutables ni el instalador compilado (se generan con PyInstaller e Inno Setup desde este codigo).
+  - Proyectos de ejemplo y datos de usuario (uceclima/proyectos). incluidos datos de terceros.
+  - Credenciales: el programa no guarda ninguna en el codigo; Earth Engine se autoriza en cada equipo.
+
+COMO EJECUTAR DESDE EL CODIGO
+  1) Python 3.9 o superior (Windows 10/11). Ver uceclima/INSTALACION.md; rasterio y geopandas se instalan mejor con conda.
+     pip install -r uceclima/requirements.txt
+  2) Desde esta carpeta: python -m uceclima.ui
+     (interfaz en http://127.0.0.1:8765; opciones --puerto N y --sin-ventana)
+  3) Pruebas: python uceclima/correr_pruebas_uceclima.py
+
+TAMANO: 209 archivos. 127 de Python. unas 30.669 lineas de codigo.
+
+CREDITOS Y USO DE INTELIGENCIA ARTIFICIAL
+  La correccion de scripts y la generacion de HTML se realizaron con apoyo de un entorno de Visual Studio Code
+  con inteligencia artificial (Claude Code, de Anthropic). El diseno, la direccion tecnica, la revision y las
+  decisiones sobre el programa son del autor.
+
+Librerias de terceros incluidas con sus avisos de licencia: Three.js (MIT) y Leaflet 1.9.4 (BSD-2-Clause) en uceclima/ui/static.
+
+Los resultados del programa no estan calibrados ni validados salvo que el proyecto lo declare.

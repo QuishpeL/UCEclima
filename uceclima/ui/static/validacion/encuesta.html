@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<title>{{TITULO}}</title>
+<meta name="description" content="Encuesta de campo «¿Se inunda?» para contrastar el modelo de inundación con lo que conoce la comunidad. Generada por UCEclima.">
+<meta name="theme-color" content="#0B2545">
+<style>/*LEAFLET_CSS*/</style>
+<style>/*ENCUESTA_CSS*/
+/* formulario centrado y lejos de las esquinas: el logo del alojamiento (p. ej. Netlify) no tapa «Guardar» (31-oct-2026) */
+:root{--nf:76px}
+#app{inset:0 0 var(--nf) 0}
+.sheet{align-items:center;padding:12px 12px calc(var(--nf) + 12px)}
+.card{border-radius:18px;max-height:calc(100% - var(--nf) - 24px);padding:16px 16px 0}
+.card .btns.sticky{position:sticky;bottom:0;background:#fff;padding:12px 0 16px;margin-bottom:0;border-top:1px solid var(--pale);justify-content:center}
+#toast{bottom:calc(env(safe-area-inset-bottom) + 150px + var(--nf))}
+.capa{display:flex;align-items:center;gap:10px;padding:11px 4px;border-bottom:1px solid var(--pale);font-size:15px}
+.capa input{width:20px;height:20px}
+.aviso{font-size:12px;color:#5D6D7E;background:#FFF7E6;border:1px solid #F3D9A4;border-radius:8px;padding:8px 10px;margin:8px 0}
+.card input[type=number]{width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;font-size:16px;font-family:inherit}
+.b1.web{background:#0F766E}
+#estadoWeb{font-size:12px;color:#0F766E;margin:6px 0 0;min-height:16px}
+.mg{font-size:11px;font-weight:800;color:var(--navy);text-transform:uppercase;letter-spacing:.04em;margin:12px 0 2px;padding-bottom:3px;border-bottom:2px solid var(--pale)}
+.chk{display:flex;align-items:flex-start;gap:10px;padding:9px 2px;font-size:14.5px;line-height:1.25;border-bottom:1px solid var(--pale)}
+.chk input{flex:none;width:22px;height:22px;margin:0}
+.chk.on{background:#EAF2FB;border-radius:8px}
+#bLang{font-weight:800}
+#cargando{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#fff;z-index:5000;font-size:16px;color:#0B2545;padding:24px;text-align:center}
+</style>
+</head>
+<body>
+<div id="cargando" style="display:none"></div>
+<div id="app">
+  <header>
+    <div class="t"><div class="k" id="hK">Validación de campo</div><h1 id="hT">¿Se inunda? Marquen su barrio</h1></div>
+    <button id="bLang" aria-label="Idioma / Language">EN</button>
+    <button id="bHelp" aria-label="Ayuda" data-t="ayuda">? Ayuda</button>
+  </header>
+  <div id="map"></div>
+  <button class="fab" id="fGps" aria-label="Mi ubicación" title="Mi ubicación">◎</button>
+  <button class="fab" id="fLay" aria-label="Capas" title="Capas">☰</button>
+  <button class="fab" id="fCnt" aria-label="Guardar y enviar" title="Guardar y enviar">0</button>
+  <div id="drawbar"><button class="cx" id="dCancel" data-t="cancelar">Cancelar</button><button class="go" id="dDone" data-t="terminar_zona">Terminar zona</button></div>
+  <div id="bar">
+    <div id="hint">1) Elija qué va a marcar</div>
+    <div class="row">
+      <button class="big si" id="tSi" data-t="b_si">≈ SE INUNDA<small>aquí llega el agua</small></button>
+      <button class="big no" id="tNo" data-t="b_no">✓ NO SE INUNDA<small>aquí nunca llega</small></button>
+    </div>
+    <div class="mini">
+      <button id="mPt" class="on" data-t="m_punto">● Punto</button>
+      <button id="mZone" data-t="m_zona">⬠ Zona</button>
+      <button id="mHere" data-t="m_aqui">◎ Aquí estoy</button>
+      <button id="mUndo" disabled data-t="m_deshacer">↶ Deshacer</button>
+      <button id="mSend" data-t="m_enviar">⇪ Enviar</button>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<div class="sheet" id="sHelp"><div class="card">
+  <h2 data-t="h_tit">Cómo marcar su barrio</h2>
+  <p data-t="h_intro">Este mapa es suyo: marque lo que usted conoce del territorio. No hay respuestas buenas ni malas.</p>
+  <div class="step"><i>1</i><div data-t="h_1">Toque <b style="color:#C0392B">SE INUNDA</b> o <b style="color:#1E8E6E">NO SE INUNDA</b>.</div></div>
+  <div class="step"><i>2</i><div data-t="h_2">Toque el mapa para poner un <b>punto</b>. Para un sector más grande use <b>Zona</b>: toque las esquinas y luego «Terminar zona». Para marcar donde está parado, use <b>Aquí estoy</b>.</div></div>
+  <div class="step"><i>3</i><div data-t="h_3">Responda rápido: <b>cada cuánto</b> ocurre, <b>qué tan alta</b> llega el agua, <b>cuánto perdieron</b>, la <b>fecha y duración</b> de la peor inundación y las <b>medidas</b> que ayudarían.</div></div>
+  <div class="step"><i>4</i><div data-t="h_4">Cada marca se envía sola cuando hay internet. En <b>Enviar</b> también puede mandarla por WhatsApp o guardar el archivo.</div></div>
+  <p style="font-size:12px;color:#5D6D7E" data-t="h_pie">Sus marcas se guardan en este teléfono aunque cierre la página. No pedimos nombres ni datos personales. El mapa del modelo está en ☰ Capas: mírelo al final, para comparar.</p>
+  <div class="btns"><button class="b1" id="hOk" data-t="entendido">Entendido</button></div>
+</div></div>
+
+<div class="sheet" id="sForm"><div class="card">
+  <h2 id="fTitle">Cuéntenos más</h2>
+  <p id="fSub" style="color:#5D6D7E">Opcional, pero ayuda mucho.</p>
+  <div id="fSiOnly">
+    <label data-t="q_frec">¿Cada cuánto se inunda?</label>
+    <select id="fFrec"></select>
+    <label data-t="q_alt">¿Qué tan alta llega el agua?</label>
+    <select id="fAlt"></select>
+    <label data-t="q_cm">Si la recuerda: altura en centímetros (marca en la pared)</label>
+    <input type="number" id="fCm" min="0" max="600" step="5" inputmode="numeric" placeholder="70">
+    <label data-t="q_afec">¿Qué se ve afectado?</label>
+    <select id="fAfec"></select>
+    <label data-t="q_perd">¿Cuánto han perdido en total (en dólares)?</label>
+    <select id="fPerd"></select>
+    <label data-t="q_ev">¿Qué fecha recuerda del evento de inundación más fuerte?</label>
+    <input type="text" id="fEv" maxlength="60" data-ph="ph_ev" placeholder="Ej.: marzo 2023, febrero 2017, El Niño 1998">
+    <label data-t="q_dur">¿Durante cuánto tiempo estuvo inundado?</label>
+    <select id="fDur"></select>
+    <label><span data-t="q_med">¿Qué medidas cree que ayudarían a evitar la inundación aquí?</span> <span style="text-transform:none;font-weight:500;color:#5D6D7E" data-t="max3">(máximo 3)</span></label>
+    <div id="fMed"></div>
+    <p style="font-size:11px;color:#5D6D7E;margin:8px 0 0" data-t="med_fuente">Lista basada en la clasificación de medidas estructurales y no estructurales de UNDRR, en medidas de gestión de inundaciones usadas en Ecuador y en soluciones basadas en la naturaleza.</p>
+  </div>
+  <label data-t="q_nota">Comentario (opcional)</label>
+  <textarea id="fNota" rows="2" data-ph="ph_nota" placeholder="Ej.: se tapa la alcantarilla, el estero se desborda…"></textarea>
+  <div class="btns sticky"><button class="b3" id="fDel" data-t="borrar">Borrar</button><button class="b1" id="fOk" data-t="guardar">Guardar</button></div>
+</div></div>
+
+<div class="sheet" id="sLay"><div class="card">
+  <h2 data-t="l_tit">Capas del mapa</h2>
+  <label data-t="l_fondo">Fondo</label>
+  <div class="opt"><input type="radio" name="base" id="bClaro" checked><label for="bClaro" style="margin:0;text-transform:none;font-size:15px;color:inherit" data-t="l_claro">Mapa claro (recomendado)</label></div>
+  <div class="opt"><input type="radio" name="base" id="bCalles"><label for="bCalles" style="margin:0;text-transform:none;font-size:15px;color:inherit" data-t="l_calles">Calles</label></div>
+  <div class="opt"><input type="radio" name="base" id="bSat"><label for="bSat" style="margin:0;text-transform:none;font-size:15px;color:inherit" data-t="l_sat">Satélite</label></div>
+  <label data-t="l_sobre">Sobre el mapa</label>
+  <div class="opt"><input type="checkbox" id="cArea" checked><label for="cArea" style="margin:0;text-transform:none;font-size:15px;color:inherit" data-t="l_zona">Zona de estudio</label></div>
+  <label><span data-t="l_modelo">Mapas del modelo</span> <small style="text-transform:none;color:#5D6D7E" data-t="l_modelo2">(mírelos al final, para comparar)</small></label>
+  <div id="lCapas"></div>
+  <div id="legMod" class="legend" style="display:none"><span><b style="background:#DCEAF7"></b>&lt; 0,3 m</span><span><b style="background:#8DBBE0"></b>0,3–0,5 m</span><span><b style="background:#3A87C6"></b>0,5–1 m</span><span><b style="background:#0B4A8B"></b>1–2 m</span><span><b style="background:#06264D"></b>&gt; 2 m</span></div>
+  <p class="aviso" id="avisoMod"></p>
+  <div class="btns"><button class="b1" id="lOk" data-t="listo">Listo</button></div>
+</div></div>
+
+<div class="sheet" id="sSend"><div class="card">
+  <h2 data-t="s_tit">Guardar y enviar</h2>
+  <p id="sSum">Aún no hay marcas.</p>
+  <label data-t="s_grupo">Nombre del grupo o barrio</label>
+  <input type="text" id="grp" data-ph="ph_grupo" placeholder="Ej.: Grupo San Miguel – mesa 2">
+  <div class="btns" id="filaWeb"><button class="b1 web" id="sWeb" data-t="s_web">☁ Enviar a la base ahora</button></div>
+  <p id="estadoWeb"></p>
+  <div class="btns"><button class="b1" id="sWa" data-t="s_wa">Enviar por WhatsApp</button></div>
+  <div class="btns"><button class="b2" id="sShare" data-t="s_share">Compartir archivo</button><button class="b2" id="sDl" data-t="s_dl">Descargar archivo</button></div>
+  <div class="btns sticky"><button class="b3" id="sClear" data-t="s_clear">Borrar todo</button><button class="b2" id="sClose" data-t="cerrar">Cerrar</button></div>
+  <p style="font-size:12px;color:#5D6D7E;margin-top:10px" id="sPie"></p>
+</div></div>
+<script>/*LEAFLET_JS*/</script>
+<script>window.DATA = /*DATA*/;</script>
+<script>/*ENCUESTA_JS*/</script>
+</body>
+</html>

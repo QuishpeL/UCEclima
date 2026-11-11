@@ -1,0 +1,60 @@
+UCEclima Omega (7.0) · hidrología e hidráulica para Ecuador
+Grupo GICARH · Universidad Central del Ecuador
+=====================================================
+
+NOVEDADES DE OMEGA 7.0 (se instala aparte; Epsilon sigue instalada)
+  Versión consolidada: Epsilon + correcciones de un caso real (Milagro, evento del 26-oct-2026) + terreno de suelo desnudo + mapas automáticos.
+  Terreno
+  - FABDEM (Copernicus GLO-30 sin bosques ni edificios; Hawker et al. 2022) desde Earth Engine, con verificación contra la media del servidor
+    (se rechaza un MDT constante). Licencia CC BY-NC-SA 4.0 (uso no comercial). Suaviza también cauces pequeños: revísalo.
+  - Filtro DECLARADO de picos para DSM: umbral y ventana elegidos por la persona; crea un MDT nuevo y queda en el historial.
+  Corrida
+  - Tarjeta «0 · Forzamiento»: evento observado en HORA LOCAL de la estación (antes UTC sin aviso) e hidrogramas de entrada desde la interfaz.
+  - Corridas de hasta 96 h simuladas si se estiman ≤ 30 min (eventos reales largos y tormentas de diseño de 24 h).
+  - Cuencas externas para tormentas de diseño Tr: el núcleo calcula su hidrograma con la misma IDF de la 2D.
+  - El borde se cierra junto a cada hidrograma de entrada (antes la salida libre devolvía el río al exterior).
+  - Humedad antecedente (AMC I/III/auto) también para el CN de Earth Engine.
+  Resultados
+  - Mapa estilo RAS automático al terminar cada corrida: calado suavizado sobre imagen satelital, ríos, calles, edificios expuestos y
+    equipamiento OSM, estación, norte y escala; Tr o evento observado y calado p99 en el título.
+  - Visor 3D: ríos HydroSHEDS siempre visibles (casilla «Ríos»).
+  - Contaminantes con entrada propia en el menú y estilo carboncillo.
+  Premódulo
+  - Lecturas a horas fijas (07/13/19 h) y códigos 888/999 de INAMHI.
+  - Los resultados NO están calibrados ni validados para predicción. Pendientes: docs\PENDIENTES_EPSILON.md
+
+
+MÓDULOS (cada uno funciona por sí solo)
+  0  Preparación de datos      Excel/CSV de lluvia y caudal. Carga masiva (carpetas con cientos de estaciones) y catálogo de coordenadas.
+  1  Proyecto                  Nombre y punto (lon, lat). Una carpeta por proyecto. Estaciones INAMHI más cercanas.
+  2  Datos / GEE               Conectar Earth Engine (cuenta propia). Uso de suelo y suelo; CN y Manning. CN/Manning propios (GeoTIFF).
+  3  CHIRPS                    Lluvia diaria por satélite.
+  4  IDF INAMHI (X)            Ecuaciones y curvas del libro del INAMHI.  ⚙ Tr y duración.
+  5  Terreno                   MDT de Earth Engine (por defecto) o propio (GeoTIFF). Lámina del MDT.  ⚙ resolución.
+  6  hidro                     Cuenca · Hidrología · Calibración.
+  7  land · Corrida 2D         ⚙ resolución, tiempo simulado, paso de tiempo, Courant, solver, frontera.
+  8  land · Evaluación
+  9  CMIP6                     Mejor modelo = RMSE más bajo. SSP5-8.5 (magenta). Time of Emergence (ToE) por índice de lluvia.
+  10 WRF                       Leer salidas WRF (wrfout o NetCDF) como lluvia X o Y, corrección QQM; preparar corridas para Linux/WSL.
+  11 Resultados y entregas     Shapes, CSV/Excel, mapas; insumos BCA FEMA y El Niño / La Niña.
+  ★  Visor 3D y maquetas isométricas.
+
+DESCARGAS LARGAS (CMIP6)
+  El programa no se cierra mientras haya una descarga en curso. Si se cierra la sesión o se apaga la PC,
+  al volver aparece «Reanudar»: lo ya bajado se conserva y se continúa desde ahí.
+
+AGENTES (VS Code + Claude Code y VS Code + Copilot)
+  Al crear o abrir un proyecto quedan configurados .mcp.json (Claude Code), .vscode/mcp.json (Copilot), AGENTS.md y CLAUDE.md.
+  Botón «Agente» arriba a la derecha: abre VS Code en el proyecto. El agente arranca UCEclima si está cerrado y abre ese proyecto.
+
+PROYECTOS
+  Documentos\UCEclima_proyectos\<nombre>. Desinstalar no los borra.
+
+DESINSTALAR
+  Configuración › Aplicaciones › UCEclima › Desinstalar.
+
+SI WINDOWS BLOQUEA EL PROGRAMA (Smart App Control)
+  El programa no está firmado. PC personal: Seguridad de Windows › Control de aplicaciones y navegador ›
+  Smart App Control › Desactivado. PC institucional: pedir a TI que permita la carpeta de UCEclima.
+
+Resultados sin calibrar ni validar: no son predicciones.

@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Proyecto UCEclima",
+  "type": "object",
+  "required": ["version_esquema", "nombre", "tipo", "crs", "datum_vertical", "unidades", "carpeta_resultados", "config_climanet", "procedencia"],
+  "additionalProperties": true,
+  "properties": {
+    "version_esquema": {"const": 1},
+    "nombre": {"type": "string", "minLength": 3, "maxLength": 80},
+    "tipo": {"enum": ["sintetico", "real"], "description": "Un proyecto sintético se rotula siempre como tal y nunca se superpone a imágenes reales."},
+    "descripcion": {"type": "string"},
+    "ubicacion": {"type": "string"},
+    "crs": {"type": "string", "pattern": "^EPSG:[0-9]{4,6}$"},
+    "datum_vertical": {"type": "string", "minLength": 3, "description": "Texto explícito; «no verificado» es válido y se advierte."},
+    "tipo_terreno": {"enum": ["MDT", "DSM", "desconocido"]},
+    "unidades": {"type": "object", "required": ["longitud", "lluvia", "caudal"], "properties": {"longitud": {"const": "m"}, "lluvia": {"const": "mm"}, "caudal": {"const": "m3/s"}}},
+    "carpeta_resultados": {"type": "string", "minLength": 1},
+    "config_climanet": {"type": "string", "minLength": 1, "description": "Ruta (relativa al proyecto) del JSON de configuración del núcleo CLIMANET."},
+    "procedencia": {"type": "object", "required": ["creado", "origen"], "properties": {"creado": {"type": "string"}, "origen": {"type": "string"}, "notas": {"type": "array", "items": {"type": "string"}}}}
+  }
+}

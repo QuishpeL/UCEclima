@@ -1,0 +1,34 @@
+UCEclima Zeta (8.0) · hidrología e hidráulica, de Ecuador al mundo con CHIRPS
+Autor: Diego Quishpe Landeta · Coautoras: Teresa Palacios y María Eugenia Ávila-Salem
+Doctorado en Gestión Sustentable del Agua y Riego · Universidad Central del Ecuador
+=====================================================
+
+NOVEDADES DE ZETA 8.0 (se instala aparte; Omega 7.0 sigue instalada y no se toca)
+  Z1  Cualquier sitio con CHIRPS (latitud −50…50): Ecuador, España, resto de América, África, Asia.
+      Fuera de Ecuador la IDF del INAMHI no se propone: se declara una IDF propia con su fuente.
+  Z2  Earth Engine más ágil: una sola conexión por sesión (no se re-inicializa en cada descarga), verificación con plazo
+      de 20 s por proyecto de Google Cloud y descargas CMIP6 en paralelo (6 modelos a la vez, tramos de 30 años).
+  Z3  Crear proyecto desde el SHAPE de la zona de estudio (además de coordenadas): el shape se copia a zona_estudio\,
+      queda como cuenca activa y define el área 2D. IDF propia (CSV Tr × minutos) con validación y fuente obligatoria;
+      los escenarios CMIP6 la escalan igual que a la del INAMHI.
+  Z4  Productos ordenados por módulo en productos\NN_modulo\ (shapes, figuras, CSV, rásteres, registro, informe .md y .html)
+      e índice productos\index.html. Se actualizan solos tras cada paso, descarga o corrida. Nada se sobrescribe.
+  Z5  Lo mejor de los papers 1–3 (Quishpe Landeta y Palacios, 2026): receta de estaciones/CHIRPS/CMIP6 según el USO
+      (diseño, tiempo de emergencia, balance) y la red (densa/dispersa); reescalado mes-año de CHIRPS que preserva la varianza;
+      razón de varianza; número efectivo de modelos; tiempo de emergencia con el ruido de la ESTACIÓN.
+      Módulo 11 › «Receta de los papers».
+  Z6  λ = Ia/S hasta 0,6 (antes 0,3): calibraciones externas con abstracción inicial explícita (p. ej. HEC-HMS) se usan tal cual.
+
+MÓDULOS
+  0 Preparación de datos · 1 Proyecto (coordenadas o shape) · 2 Datos / GEE · 3 CHIRPS · 4 IDF (INAMHI o propia) · 5 Terreno
+  6 hidro (cuenca, hidrología, calibración) · 7 land · Corrida 2D · 8 Evaluación · 9 CMIP6 · 10 WRF · 11 Resultados, entregas,
+  productos y receta de los papers · ★ Visor 3D y maquetas.
+
+PROYECTOS
+  Documentos\UCEclima_proyectos\<nombre>. Desinstalar no los borra. Los proyectos de Omega se abren en Zeta.
+
+SI WINDOWS BLOQUEA EL PROGRAMA (Smart App Control)
+  El programa no está firmado. PC personal: Seguridad de Windows › Control de aplicaciones y navegador ›
+  Smart App Control › Desactivado. PC institucional: pedir a TI que permita la carpeta de UCEclima.
+
+Resultados sin calibrar ni validar salvo que el proyecto lo declare: no son predicciones.

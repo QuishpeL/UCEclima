@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "UCEclima"
+version: "9.1.0"
+date-released: "2026-11-05"
+license: "CC-BY-NC-4.0"
+abstract: "Desktop workflow linking gauge screening, event calibration, 2D flood modelling and CMIP6 time of emergence."
+keywords: [flood modelling, CMIP6, time of emergence, curve number, 2D hydraulics, Ecuador]
+authors:
+  - family-names: "Quishpe Landeta"
+    given-names: "Diego"
+    affiliation: "Doctorado en Gestión Sustentable del Agua y Riego, Universidad Central del Ecuador"
+    orcid: "https://orcid.org/0009-0001-4518-9738"
+  - family-names: "Palacios"
+    given-names: "Teresa"
+    affiliation: "Doctorado en Gestión Sustentable del Agua y Riego, Universidad Central del Ecuador"
+  - family-names: "Ávila-Salem"
+    given-names: "María Eugenia"
+    affiliation: "Doctorado en Gestión Sustentable del Agua y Riego, Universidad Central del Ecuador"

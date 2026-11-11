@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dispersión de contaminantes · UCEclima</title>
+<link rel="stylesheet" href="/static/iso/iso.css">
+<link rel="stylesheet" href="/static/maqueta.css">
+<style>
+  .ct { display: grid; grid-template-columns: 300px 1fr; gap: 14px; padding: 12px; font-family: Calibri, "Segoe UI", sans-serif; color: var(--ink, #1c2a44); }
+  .ct form { display: grid; gap: 6px; align-content: start; font-size: 13px; }
+  .ct label { display: grid; grid-template-columns: 1fr 96px; align-items: center; gap: 6px; }
+  .ct input, .ct select { font: inherit; padding: 3px 5px; border: 1px solid #b9c6dc; border-radius: 5px; background: #fff; color: #1c2a44; }
+  .ct button { font: inherit; padding: 6px 10px; border-radius: 6px; border: 1px solid #2b2b2c; background: #2b2b2c; color: #fff; cursor: pointer; }
+  .ct button.sec { background: #fff; color: #2b2b2c; }
+  .ct .lect { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 6px 0; }
+  .ct .lect div { background: #eef3fb; border-radius: 6px; padding: 6px 8px; font-size: 12px; } .ct .lect b { display: block; font-size: 16px; color: #0d2a63; }
+  .ct .aviso { background: #fff6e0; border-left: 3px solid #e0a100; padding: 6px 10px; font-size: 12px; margin: 6px 0; }
+  .ct .form { background: #f2f5fb; border-left: 3px solid #0d2a63; padding: 8px 10px; font-family: "Cambria Math", Cambria, serif; font-size: 13px; line-height: 1.6; }
+  .ct ol { font-size: 12px; } .ct h3 { margin: 10px 0 4px; color: #0d2a63; }
+  .ct .tiempo { display: flex; align-items: center; gap: 8px; font-size: 13px; } .ct .tiempo input { flex: 1; }
+  .ct svg { width: 100%; height: auto; }
+  .escala { height: 10px; border-radius: 4px; background: linear-gradient(90deg, #e2e5e7, #9ea0a2, #707173, #424244, #1c1c1d); }
+</style>
+</head>
+<body class="iso" data-theme="light">
+<main class="ct">
+  <form id="f">
+    <h3 style="margin-top:0">Derrame en un tramo de río</h3>
+    <label>Masa derramada (kg)<input id="M" value="500" type="number" step="any"></label>
+    <label>Ancho del río B (m)<input id="B" value="20" type="number" step="any"></label>
+    <label>Calado h (m)<input id="h" value="1.0" type="number" step="any"></label>
+    <label>Pendiente S (m/m)<input id="S" value="0.002" type="number" step="any"></label>
+    <label>Manning n<input id="n" value="0.035" type="number" step="any"></label>
+    <label>Longitud del tramo (m)<input id="L" value="3000" type="number" step="any"></label>
+    <label>Tiempo simulado (h)<input id="t" value="1.0" type="number" step="any"></label>
+    <label>Decaimiento k (1/día)<input id="k" value="0" type="number" step="any"></label>
+    <label>Derrame en<select id="y0"><option value="0">la orilla</option><option value="0.5">el centro</option></select></label>
+    <label>Umbral de alerta (mg/L)<input id="u" value="1" type="number" step="any"></label>
+    <label>Mostrar<select id="modo"><option value="ambos">venas + mancha</option><option value="venas">solo venas (partículas)</option><option value="mancha">solo mancha</option></select></label>
+    <label>Irregularidad del lecho<input id="irr" value="0.15" type="number" step="0.05" min="0" max="0.6"></label>
+    <label>Coeficiente K<select id="met">
+      <option value="seo_cheong_1998">Seo y Cheong (1998)</option><option value="kashefipour_falconer_2002">Kashefipour y Falconer (2002)</option>
+      <option value="deng_2001">Deng et al. (2001)</option><option value="fischer_1975">Fischer (1975)</option><option value="elder_1959">Elder (1959)</option></select></label>
+    <button type="submit">Calcular y animar</button>
+    <button type="button" class="sec" id="g">Guardar escenario en el proyecto</button>
+    <div id="msg"></div>
+    <div class="aviso">Base pedagógica: canal rectangular uniforme y derrame instantáneo, <b>sin calibrar ni validar</b>. No es un estudio de impacto. En el doctorado: U y h desde una corrida 2D y K calibrado con trazadores.</div>
+  </form>
+  <section>
+    <div id="fig"></div>
+    <div class="tiempo"><button type="button" id="play">▶</button><input type="range" id="ti" min="0" max="39" value="0"><span id="tt">—</span></div>
+    <div class="escala"></div><div style="display:flex;justify-content:space-between;font-size:11px"><span>agua limpia</span><span id="cmaxEtq">C máx</span></div>
+    <div style="height:10px;border-radius:4px;margin-top:4px;background:linear-gradient(90deg,#969698,#181819);border:1px solid #b9c6dc"></div><div style="display:flex;justify-content:space-between;font-size:11px"><span>venas: partícula lenta (orilla)</span><span>rápida (centro / corriente)</span></div>
+    <div class="lect" id="lect"></div>
+    <h3>Vista 2 · planta sobre imagen satelital (cauce real del proyecto)</h3>
+    <div class="tiempo" style="flex-wrap:wrap"><label style="display:flex;gap:4px">lon <input id="plon" style="width:110px" placeholder="-78.1060"></label><label style="display:flex;gap:4px">lat <input id="plat" style="width:100px" placeholder="-0.3120"></label>
+      <label style="display:flex;gap:4px">ancho ×<input id="pexa" value="8" style="width:50px"></label><button type="button" id="pgo">Dibujar en planta</button><span id="pmsg" style="font-size:12px"></span></div>
+    <div id="pfig"></div>
+    <p style="font-size:12px;color:#5a6f95">Usa el MDT del proyecto abierto: desde el punto del derrame sigue el cauce aguas abajo (máxima pendiente) y dibuja la mancha a lo largo de él en 4 instantes. El ancho se exagera para que se vea.</p>
+    <h3>Fórmulas</h3>
+    <div class="form">
+      U = (1/n) R<sup>2/3</sup> S<sup>1/2</sup> · u* = √(g R S) · ε<sub>t</sub> = 0,6 h u*<br>
+      C(x, y, t) = M / (4π t h √(K ε<sub>t</sub>)) · exp[−(x − x<sub>0</sub> − U t)² / (4 K t)] · Σ<sub>imágenes</sub> exp[−(y − y<sub>i</sub>)² / (4 ε<sub>t</sub> t)] · e<sup>−k t</sup><br>
+      Seo y Cheong: K = 5,915 (B/h)<sup>0,620</sup> (U/u*)<sup>1,428</sup> h u* · Kashefipour y Falconer: K = 10,612 h U (U/u*)<br>
+      Deng et al.: K = 0,15/(8 ε<sub>t0</sub>) (U/u*)² (B/h)<sup>5/3</sup> h u*, ε<sub>t0</sub> = 0,145 + (U/u*)(B/h)<sup>1,38</sup>/3520 · Fischer: K = 0,011 U² B²/(h u*) · Elder: K = 5,93 h u*<br>
+      Mezcla transversal completa: L ≈ 0,4 U B²/ε<sub>t</sub> (orilla) o 0,1 U B²/ε<sub>t</sub> (centro)<br>
+      Venas (partículas): dx = u(y) dt + √(2 ε dt) ξ<sub>x</sub>, dy = √(2 ε dt) ξ<sub>y</sub>, u(y) = U (p+1)/p (1 − |2y/B − 1|<sup>p</sup>)(1 + a·Σ sen) — zona advectiva antes de la dispersión de Taylor–Elder
+    </div>
+    <h3>Referencias (verificadas en Crossref)</h3><ol id="refs"></ol>
+  </section>
+</main>
+<script type="module" src="/static/contaminantes.js"></script>
+</body>
+</html>

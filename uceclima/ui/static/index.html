@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="es" data-tema="oscuro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UCEclima · modelamiento hidrológico e hidráulico</title>
+<script>try{var t=localStorage.getItem("uceclima_tema");if(t==="claro")document.documentElement.removeAttribute("data-tema")}catch(e){}</script>
+<link rel="icon" type="image/png" href="/static/favicon.png">
+<link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+<a class="saltar" href="#principal">Saltar al contenido</a>
+<div class="app">
+  <aside class="lateral" id="lateral" aria-label="Etapas">
+    <div class="marca"><span class="logo" aria-hidden="true"><img src="/static/logo_emblema.png" alt=""></span><div><strong>UCEclima Lambda</strong><small>Versión 9.1</small></div></div>
+    <nav id="nav" aria-label="Módulos"></nav>
+    <div class="pie-logos"><img src="/static/logo_uce.png" alt="Universidad Central del Ecuador"></div>
+    <p class="pie-lateral">Autor: Diego Quishpe Landeta · Coautoras: Teresa Palacios y María Eugenia Ávila-Salem.</p>
+    <p class="pie-lateral">Desarrollado en el marco del Doctorado en Gestión Sustentable del Agua y Riego (Universidad Central del Ecuador).</p>
+    <p class="pie-lateral">Prototipo de investigación · sin calibración ni validación de campo. No es una herramienta de decisión.</p>
+  </aside>
+  <div class="cuerpo">
+    <header class="barra">
+      <button class="menu" id="btnmenu" aria-label="Mostrar u ocultar etapas" aria-expanded="false">☰</button>
+      <div class="titulo-proyecto" id="titulo-proyecto" aria-live="polite">Sin proyecto abierto</div>
+      <span id="badge-tipo"></span>
+      <button type="button" class="run-btn" id="btnrun" title="Ejecutar la acción principal de este módulo" disabled>▶ RUN</button>
+      <button type="button" class="tema-btn" id="btnguardar" title="Guardar el avance del proyecto (Ctrl+S): módulo, campos y productos ordenados. Al volver a abrir UCEclima continúas aquí.">💾 Guardar</button>
+      <span class="chip" id="guardado-info" aria-live="polite"></span>
+      <button type="button" class="tema-btn" id="btnagente" title="Agente de VS Code">○ Agente VS Code</button>
+      <button type="button" class="tema-btn" id="btntema" title="Cambiar entre tema noche y claro">◐ Tema</button>
+      <span class="estado-corrida" id="estado-corrida" aria-live="polite"></span>
+    </header>
+    <main id="principal" tabindex="-1"></main>
+  </div>
+</div>
+<div id="aviso" role="status" aria-live="polite"></div>
+<div id="arranque" role="status" aria-live="polite" style="position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;background:#0b1320;color:#e6edf5;font-family:'Calibri Light',Calibri,Arial,sans-serif">
+  <div style="max-width:520px;text-align:center;padding:24px"><img src="/static/logo_emblema.png" alt="" style="width:64px;height:64px;opacity:.9">
+    <h2 style="font-weight:300;margin:12px 0 6px">Abriendo UCEclima Lambda…</h2><p id="arrTxt" style="color:#93a4b8;margin:0 0 14px">Recuperando tu proyecto y lo que llevas hecho.</p>
+    <div style="height:6px;background:#1c2a3c;border-radius:4px;overflow:hidden"><i id="arrBar" style="display:block;height:100%;width:8%;background:#6cc4ec;transition:width .6s"></i></div>
+    <button id="arrRe" hidden style="margin-top:16px">Reintentar</button></div></div>
+<style>#desconexion:not([hidden]){display:flex}#desconexion[hidden]{display:none}</style>
+<div id="desconexion" role="alert" hidden style="position:fixed;left:0;right:0;top:0;z-index:95;background:#8b1a1a;color:#fff;padding:12px 18px;font-size:15px;gap:14px;align-items:center;box-shadow:0 4px 18px rgba(0,0,0,.5)">
+  <b>UCEclima se desconectó.</b><span id="descTxt" style="flex:1">Tus datos y la corrida están guardados en la carpeta del proyecto. Si cerraste el programa, ábrelo otra vez desde el acceso directo: continúas donde te quedaste.</span>
+  <button id="descRe" style="background:#fff;color:#8b1a1a;border:0;border-radius:6px;padding:6px 12px;cursor:pointer">Reconectar</button>
+  <button id="descCerrar" aria-label="Cerrar este aviso" title="Cerrar este aviso (vuelve a salir solo si la conexión se corta otra vez)" style="background:transparent;color:#fff;border:1px solid rgba(255,255,255,.5);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:16px;line-height:1">×</button></div>
+<script>window.TOKEN="__TOKEN__";</script>
+<script src="/static/app.js"></script>
+<script src="/static/series.js"></script>
+<script src="/static/premodulo.js"></script>
+<script src="/static/modulos.js"></script>
+<script src="/static/idf.js"></script>
+<script src="/static/entregas.js"></script>
+<script src="/static/escenarios.js"></script>
+<script src="/static/cmip6.js"></script>
+<script src="/static/hidrologia.js"></script>
+<script src="/static/cuenca.js"></script>
+<script src="/static/hidro.js"></script>
+<script src="/static/wrf.js"></script>
+<script src="/static/actividad.js"></script>
+<script src="/static/campo.js"></script>
+<script src="/static/mapa2d.js"></script>
+<script src="/static/peligro.js"></script>
+<script src="/static/pronostico.js"></script>
+</body>
+</html>

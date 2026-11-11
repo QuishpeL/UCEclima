@@ -1,0 +1,6 @@
+build_dist*/
+build_instalador/
+_zeta_dev/e2e_mundo/
+_zeta_dev/capturas/
+__pycache__/
+*.pyc
